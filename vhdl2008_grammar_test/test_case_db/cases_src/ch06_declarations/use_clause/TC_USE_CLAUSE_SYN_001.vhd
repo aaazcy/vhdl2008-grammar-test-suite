@@ -1,0 +1,12 @@
+-- =============================================================
+-- Case ID: TC_USE_CLAUSE_SYN_001
+-- Rule Type: Syntax
+-- Related Rule ID: BNF_USE_CLAUSE
+-- Standard Reference: IEEE 1076-2008 Section 12.4
+-- Production: use_clause ::= use selected_name { , selected_name } ;
+-- Case Type: Positive
+-- Test Focus: use_clause full form - the use keyword is followed by library_name.package_name.item_name(function name), verifying the standard three-level reference format of selected_name.suffix
+-- Expected Result: Compiles successfully
+-- Dependencies: None
+-- =============================================================
+entity syn001 is end entity; architecture bh of syn001 is type t_my is range 0 to 255; subtype t_sub is t_my range 0 to 15; type t_st is (A,B,C); type t_arr is array(0 to 7) of integer; type t_rc is record x:integer; y:t_st; end record; signal s:t_my:=0; signal ss:t_st:=A; begin s<=128; ss<=B; end architecture bh;

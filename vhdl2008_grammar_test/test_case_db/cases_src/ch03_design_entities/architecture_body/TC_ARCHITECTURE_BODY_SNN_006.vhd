@@ -1,0 +1,12 @@
+-- =============================================================
+-- Case ID: TC_ARCHITECTURE_BODY_SNN_006
+-- Rule Type: Syntax
+-- Related Rule ID: BNF_ARCHITECTURE_BODY
+-- Standard Reference: IEEE 1076-2008 Section 3.3.1
+-- Production: architecture_body ::= architecture identifier of entity_name is architecture_declarative_part begin architecture_statement_part end [ architecture ] [ architecture_simple_name ] ;
+-- Case Type: Negative
+-- Test Focus: entity_name references non-existent entity
+-- Expected Result: Triggers semantic error: unknown entity_name
+-- Dependencies: None
+-- =============================================================
+architecture behav of nonexistent_entity is begin end architecture behav;

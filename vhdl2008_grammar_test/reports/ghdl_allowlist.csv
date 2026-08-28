@@ -1,0 +1,157 @@
+﻿relpath,reason
+ch03_design_entities/architecture_body/TC_ARCHITECTURE_BODY_SYN_022.vhd,GHDL 6.0 enum literal alias signature gap (REVIEW)
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SEM_001.vhd,GHDL 6.0 no default verification unit binding
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SEM_002.vhd,GHDL 6.0 no default verification unit binding
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SYN_001.vhd,GHDL 6.0 no default verification unit binding
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SYN_002.vhd,GHDL 6.0 no default verification unit binding
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SYN_003.vhd,GHDL 6.0 no default verification unit binding
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SYN_004.vhd,GHDL 6.0 no default verification unit binding
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SYN_005.vhd,GHDL 6.0 no default verification unit binding
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SYN_006.vhd,GHDL 6.0 no default verification unit binding
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SYN_007.vhd,GHDL 6.0 no default verification unit binding
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SYN_008.vhd,GHDL 6.0 no default verification unit binding
+ch03_design_entities/configuration_declaration/TC_CONFIGURATION_DECLARATION_SYN_S01.vhd,GHDL 6.0 no default verification unit binding
+ch04_subprograms_packages/signature/TC_SIGNATURE_SYN_003.vhd,GHDL 6.0 generic type conversion gap
+ch04_subprograms_packages/signature/TC_SIGNATURE_SYN_005.vhd,GHDL 6.0 generic type conversion gap
+ch04_subprograms_packages/signature/TC_SIGNATURE_SYN_010.vhd,GHDL 6.0 generic type conversion gap
+ch04_subprograms_packages/subprogram_instantiation_declaration/TC_SUBPROGRAM_INSTANTIATION_DECLARATION_SYN_004.vhd,GHDL 6.0 generic subprogram instantiation gap
+ch04_subprograms_packages/subprogram_instantiation_declaration/TC_SUBPROGRAM_INSTANTIATION_DECLARATION_SYN_006.vhd,GHDL 6.0 generic subprogram instantiation gap
+ch04_subprograms_packages/subprogram_instantiation_declaration/TC_SUBPROGRAM_INSTANTIATION_DECLARATION_SYN_007.vhd,GHDL 6.0 generic subprogram instantiation gap
+ch04_subprograms_packages/subprogram_instantiation_declaration/TC_SUBPROGRAM_INSTANTIATION_DECLARATION_SYN_008.vhd,GHDL 6.0 generic subprogram instantiation gap
+ch05_types/array_element_resolution/TC_ARRAY_ELEMENT_RESOLUTION_SEM_001.vhd,GHDL 6.0 no array element resolution
+ch05_types/protected_type_declarative_item/TC_PROTECTED_TYPE_DECLARATIVE_ITEM_SEM_002.vhd,GHDL 6.0 attribute spec in protected type gap
+ch05_types/range/TC_RANGE_SEM_002.vhd,GHDL 6.0 no scalar range attribute
+ch05_types/record_constraint/TC_RECORD_CONSTRAINT_SEM_001.vhd,GHDL 6.0 no record constraints
+ch05_types/record_constraint/TC_RECORD_CONSTRAINT_SEM_002.vhd,GHDL 6.0 no record constraints
+ch05_types/record_element_constraint/TC_RECORD_ELEMENT_CONSTRAINT_SEM_001.vhd,GHDL 6.0 no record element constraints
+ch05_types/record_element_resolution/TC_RECORD_ELEMENT_RESOLUTION_SEM_001.vhd,GHDL 6.0 internal error on record element resolution
+ch05_types/record_element_resolution/TC_RECORD_ELEMENT_RESOLUTION_SYN_001.vhd,GHDL 6.0 internal error on record element resolution
+ch05_types/record_element_resolution/TC_RECORD_ELEMENT_RESOLUTION_SYN_002.vhd,GHDL 6.0 internal error on record element resolution
+ch05_types/record_element_resolution/TC_RECORD_ELEMENT_RESOLUTION_SYN_003.vhd,GHDL 6.0 internal error on record element resolution
+ch05_types/record_element_resolution/TC_RECORD_ELEMENT_RESOLUTION_SYN_004.vhd,GHDL 6.0 internal error on record element resolution
+ch05_types/record_element_resolution/TC_RECORD_ELEMENT_RESOLUTION_SYN_005.vhd,GHDL 6.0 internal error on record element resolution
+ch05_types/record_element_resolution/TC_RECORD_ELEMENT_RESOLUTION_SYN_006.vhd,GHDL 6.0 internal error on record element resolution
+ch05_types/record_element_resolution/TC_RECORD_ELEMENT_RESOLUTION_SYN_S01.vhd,GHDL 6.0 internal error on record element resolution
+ch05_types/record_resolution/TC_RECORD_RESOLUTION_SEM_001.vhd,GHDL 6.0 internal error on record resolution subtype indication
+ch05_types/record_resolution/TC_RECORD_RESOLUTION_SEM_002.vhd,GHDL 6.0 internal error on record resolution subtype indication
+ch05_types/record_resolution/TC_RECORD_RESOLUTION_SYN_001.vhd,GHDL 6.0 internal error on record resolution subtype indication
+ch05_types/record_resolution/TC_RECORD_RESOLUTION_SYN_002.vhd,GHDL 6.0 internal error on record resolution subtype indication
+ch05_types/record_resolution/TC_RECORD_RESOLUTION_SYN_003.vhd,GHDL 6.0 internal error on record resolution subtype indication
+ch05_types/record_resolution/TC_RECORD_RESOLUTION_SYN_004.vhd,GHDL 6.0 internal error on record resolution subtype indication
+ch05_types/record_resolution/TC_RECORD_RESOLUTION_SYN_005.vhd,GHDL 6.0 internal error on record resolution subtype indication
+ch05_types/record_resolution/TC_RECORD_RESOLUTION_SYN_006.vhd,GHDL 6.0 internal error on record resolution subtype indication
+ch05_types/record_resolution/TC_RECORD_RESOLUTION_SYN_S01.vhd,GHDL 6.0 internal error on record resolution subtype indication
+ch05_types/resolution_indication/TC_RESOLUTION_INDICATION_SEM_001.vhd,GHDL 6.0 internal error on resolution indication
+ch05_types/resolution_indication/TC_RESOLUTION_INDICATION_SEM_002.vhd,GHDL 6.0 internal error on resolution indication
+ch05_types/resolution_indication/TC_RESOLUTION_INDICATION_SYN_002.vhd,GHDL 6.0 internal error on resolution indication
+ch05_types/resolution_indication/TC_RESOLUTION_INDICATION_SYN_003.vhd,GHDL 6.0 internal error on resolution indication
+ch05_types/resolution_indication/TC_RESOLUTION_INDICATION_SYN_004.vhd,GHDL 6.0 internal error on resolution indication
+ch05_types/resolution_indication/TC_RESOLUTION_INDICATION_SYN_005.vhd,GHDL 6.0 internal error on resolution indication
+ch05_types/resolution_indication/TC_RESOLUTION_INDICATION_SYN_S01.vhd,GHDL 6.0 internal error on resolution indication
+ch06_declarations/alias_declaration/TC_ALIAS_DECLARATION_SYN_001.vhd,GHDL 6.0 enum literal alias signature gap (REVIEW)
+ch06_declarations/group_constituent/TC_GROUP_CONSTITUENT_SYN_003.vhd,GHDL 6.0 char literal group constituent parser gap
+ch06_declarations/interface_element/TC_INTERFACE_ELEMENT_SYN_001.vhd,GHDL 6.0 interface type definition parser gap
+ch06_declarations/interface_package_generic_map_aspect/TC_INTERFACE_PACKAGE_GENERIC_MAP_ASPECT_SYN_003.vhd,GHDL 6.0 generic map (default) gap
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SEM_001.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SEM_002.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SYN_001.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SYN_002.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SYN_003.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SYN_004.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SYN_005.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SYN_006.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SYN_007.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SYN_008.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/compound_configuration_specification/TC_COMPOUND_CONFIGURATION_SPECIFICATION_SYN_S01.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/configuration_specification/TC_CONFIGURATION_SPECIFICATION_SEM_002.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/configuration_specification/TC_CONFIGURATION_SPECIFICATION_SYN_002.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/configuration_specification/TC_CONFIGURATION_SPECIFICATION_SYN_003.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/configuration_specification/TC_CONFIGURATION_SPECIFICATION_SYN_008.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/configuration_specification/TC_CONFIGURATION_SPECIFICATION_SYN_S01.vhd,GHDL 6.0 no vunit binding support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SEM_001.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SEM_002.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SYN_001.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SYN_002.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SYN_003.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SYN_004.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SYN_005.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SYN_006.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SYN_007.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SYN_008.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_binding_indication/TC_VERIFICATION_UNIT_BINDING_INDICATION_SYN_S01.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_list/TC_VERIFICATION_UNIT_LIST_SEM_001.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_list/TC_VERIFICATION_UNIT_LIST_SYN_001.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_list/TC_VERIFICATION_UNIT_LIST_SYN_002.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_list/TC_VERIFICATION_UNIT_LIST_SYN_003.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_list/TC_VERIFICATION_UNIT_LIST_SYN_004.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_list/TC_VERIFICATION_UNIT_LIST_SYN_005.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_list/TC_VERIFICATION_UNIT_LIST_SYN_006.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_list/TC_VERIFICATION_UNIT_LIST_SYN_007.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_list/TC_VERIFICATION_UNIT_LIST_SYN_008.vhd,GHDL 6.0 no vunit support
+ch07_configuration/verification_unit_list/TC_VERIFICATION_UNIT_LIST_SYN_S01.vhd,GHDL 6.0 no vunit support
+ch09_expressions/choices/TC_CHOICES_SYN_002.vhd,GHDL 6.0 pipe-separated choices in selected assignment gap
+ch09_expressions/choices/TC_CHOICES_SYN_003.vhd,GHDL 6.0 pipe-separated choices in selected assignment gap
+ch09_expressions/condition_operator/TC_CONDITION_OPERATOR_SEM_001.vhd,GHDL 6.0 no ?? operator for arrays
+ch09_expressions/relation/TC_RELATION_SYN_006.vhd,GHDL 6.0 no matching operators ?= ?/=
+ch09_expressions/relation/TC_RELATION_SYN_007.vhd,GHDL 6.0 no matching operators ?= ?/=
+ch09_expressions/relation/TC_RELATION_SYN_008.vhd,GHDL 6.0 no matching operators ?= ?/=
+ch09_expressions/relational_operator/TC_RELATIONAL_OPERATOR_SYN_005.vhd,GHDL 6.0 no matching operators
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SEM_001.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SEM_002.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SNN_001.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SYN_001.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SYN_002.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SYN_003.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SYN_004.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SYN_005.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SYN_006.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SYN_007.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/conditional_force_assignment/TC_CONDITIONAL_FORCE_ASSIGNMENT_SYN_008.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_assignment/TC_FORCE_ASSIGNMENT_SEM_001.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_assignment/TC_FORCE_ASSIGNMENT_SEM_002.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_assignment/TC_FORCE_ASSIGNMENT_SNN_001.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_assignment/TC_FORCE_ASSIGNMENT_SYN_002.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_assignment/TC_FORCE_ASSIGNMENT_SYN_003.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_assignment/TC_FORCE_ASSIGNMENT_SYN_004.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_assignment/TC_FORCE_ASSIGNMENT_SYN_005.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_assignment/TC_FORCE_ASSIGNMENT_SYN_006.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_assignment/TC_FORCE_ASSIGNMENT_SYN_007.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_assignment/TC_FORCE_ASSIGNMENT_SYN_008.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/force_mode/TC_FORCE_MODE_SEM_001.vhd,GHDL 6.0 no VHDL-2008 force mode support
+ch10_sequential/force_mode/TC_FORCE_MODE_SEM_002.vhd,GHDL 6.0 no VHDL-2008 force mode support
+ch10_sequential/force_mode/TC_FORCE_MODE_SYN_001.vhd,GHDL 6.0 no VHDL-2008 force mode support
+ch10_sequential/force_mode/TC_FORCE_MODE_SYN_002.vhd,GHDL 6.0 no VHDL-2008 force mode support
+ch10_sequential/force_mode/TC_FORCE_MODE_SYN_003.vhd,GHDL 6.0 no VHDL-2008 force mode support
+ch10_sequential/force_mode/TC_FORCE_MODE_SYN_004.vhd,GHDL 6.0 no VHDL-2008 force mode support
+ch10_sequential/force_mode/TC_FORCE_MODE_SYN_005.vhd,GHDL 6.0 no VHDL-2008 force mode support
+ch10_sequential/force_mode/TC_FORCE_MODE_SYN_006.vhd,GHDL 6.0 no VHDL-2008 force mode support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SEM_001.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SEM_002.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SNN_003.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SYN_001.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SYN_002.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SYN_003.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SYN_004.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SYN_005.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SYN_006.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SYN_007.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/selected_force_assignment/TC_SELECTED_FORCE_ASSIGNMENT_SYN_008.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/simple_force_assignment/TC_SIMPLE_FORCE_ASSIGNMENT_SEM_001.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/simple_force_assignment/TC_SIMPLE_FORCE_ASSIGNMENT_SEM_002.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/simple_force_assignment/TC_SIMPLE_FORCE_ASSIGNMENT_SYN_002.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/simple_force_assignment/TC_SIMPLE_FORCE_ASSIGNMENT_SYN_003.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/simple_force_assignment/TC_SIMPLE_FORCE_ASSIGNMENT_SYN_005.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/simple_force_assignment/TC_SIMPLE_FORCE_ASSIGNMENT_SYN_007.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/simple_force_assignment/TC_SIMPLE_FORCE_ASSIGNMENT_SYN_008.vhd,GHDL 6.0 no VHDL-2008 force assignment support
+ch10_sequential/simple_release_assignment/TC_SIMPLE_RELEASE_ASSIGNMENT_SEM_001.vhd,GHDL 6.0 no VHDL-2008 release assignment support
+ch10_sequential/simple_release_assignment/TC_SIMPLE_RELEASE_ASSIGNMENT_SEM_002.vhd,GHDL 6.0 no VHDL-2008 release assignment support
+ch10_sequential/simple_release_assignment/TC_SIMPLE_RELEASE_ASSIGNMENT_SYN_002.vhd,GHDL 6.0 no VHDL-2008 release assignment support
+ch10_sequential/simple_release_assignment/TC_SIMPLE_RELEASE_ASSIGNMENT_SYN_003.vhd,GHDL 6.0 no VHDL-2008 release assignment support
+ch10_sequential/simple_release_assignment/TC_SIMPLE_RELEASE_ASSIGNMENT_SYN_005.vhd,GHDL 6.0 no VHDL-2008 release assignment support
+ch10_sequential/simple_release_assignment/TC_SIMPLE_RELEASE_ASSIGNMENT_SYN_007.vhd,GHDL 6.0 no VHDL-2008 release assignment support
+ch10_sequential/simple_release_assignment/TC_SIMPLE_RELEASE_ASSIGNMENT_SYN_008.vhd,GHDL 6.0 no VHDL-2008 release assignment support
+ch15_lexical/tool_directive/TC_TOOL_DIRECTIVE_SYN_001.vhd,GHDL 6.0 custom tool directives unsupported
+ch15_lexical/tool_directive/TC_TOOL_DIRECTIVE_SYN_003.vhd,GHDL 6.0 custom tool directives unsupported
+ch15_lexical/tool_directive/TC_TOOL_DIRECTIVE_SYN_004.vhd,GHDL 6.0 custom tool directives unsupported
+ch15_lexical/tool_directive/TC_TOOL_DIRECTIVE_SYN_005.vhd,GHDL 6.0 custom tool directives unsupported
+ch15_lexical/tool_directive/TC_TOOL_DIRECTIVE_SYN_006.vhd,GHDL 6.0 custom tool directives unsupported

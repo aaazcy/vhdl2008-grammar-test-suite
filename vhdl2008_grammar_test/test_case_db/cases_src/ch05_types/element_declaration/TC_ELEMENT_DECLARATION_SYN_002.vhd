@@ -1,0 +1,12 @@
+-- =============================================================
+-- Case ID: TC_ELEMENT_DECLARATION_SYN_002
+-- Rule Type: Syntax
+-- Related Rule ID: BNF_ELEMENT_DECLARATION
+-- Standard Reference: IEEE 1076-2008 Section 6.3
+-- Production: element_declaration ::= identifier_list : element_subtype_definition ;
+-- Case Type: Positive
+-- Test Focus: element_declaration with record elements of array/record type - verifying composite types declared as sub-elements of a record element, including subtype_indication constraints
+-- Expected Result: Compiles successfully
+-- Dependencies: None
+-- =============================================================
+entity syn002 is end entity; architecture bh of syn002 is type t_my is range 0 to 255; subtype t_sub is t_my range 0 to 15; type t_st is (A,B,C); type t_arr is array(0 to 7) of integer; type t_rc is record x:integer; y:t_st; end record; signal s:t_my:=0; signal ss:t_st:=A; begin s<=128; ss<=B; end architecture bh;

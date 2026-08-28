@@ -1,0 +1,2 @@
+U+2014 count=77  e.g. block_statement\TC_BLOCK_STATEMENT_SEM_001.vhd:6: -- Rule Description: Guard expression controls guarded signal assignments — when guard is true the guarded assignment drives the signal; when false the signal retains its previous value (register semantics)
+U+FF5C count=13  e.g. concurrent_signal_assignment_statement\TC_CONCURRENT_SIGNAL_ASSIGNMENT_STATEMENT_SYN_S01.vhd:6: -- Test Focus: Concurrent signal assignment: [label:] concurrent_simple ｜ concurrent_conditional ｜ concurrent_selected signal assignment

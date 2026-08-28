@@ -1,0 +1,14 @@
+-- =============================================================
+-- Case ID: TC_SEM_2008_007_SMN_003
+-- Rule Type: Semantic
+-- Related Rule ID: SEM_2008_007
+-- Standard Reference: IEEE 1076-2008 Section 4.6
+-- Production: package_instantiation_declaration ::= package identifier is new uninstantiated_package_name [ generic_map_aspect ] ;
+-- Rule Description: The uninstantiated_package_name must refer to an actual declared uninstantiated package; instantiating from a name that has never been declared is an error
+-- Case Type: Negative
+-- Error Category: declaration_elaboration_error
+-- Test Focus: uninstantiated_package_name nonexistent_template has never been declared as a design unit in library work, so the package instantiation cannot be elaborated
+-- Expected Result: Triggers semantic error: unit "nonexistent_template" not found in library "work"
+-- Dependencies: None
+-- =============================================================
+package sem7_bad_pkg is new work.nonexistent_template;

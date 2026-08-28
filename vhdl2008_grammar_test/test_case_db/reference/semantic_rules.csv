@@ -1,0 +1,140 @@
+﻿rule_id;bnf_id;rule_description;chapter_ref;rule_priority;error_category;cover_status;tool_support_reserved;version;create_time;update_time
+SEM_ENT_001;BNF_ENTITY_DECLARATION;An entity name must be unique within the design library (no duplicate entity declarations);3.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_ENT_002;BNF_ENTITY_DECLARATION;Port names within a single entity declaration must be unique;3.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_ENT_003;BNF_ENTITY_DECLARATION;Generic names within a single entity declaration must be unique;3.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_ARCH_001;BNF_ARCHITECTURE_BODY;An architecture name must be unique within the corresponding entity;3.3.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_ARCH_002;BNF_ARCHITECTURE_BODY;The entity_name in an architecture body must reference a previously declared entity;3.3.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CFG_001;BNF_CONFIGURATION_DECLARATION;A configuration declaration must reference an existing entity;3.4.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CFG_002;BNF_BLOCK_CONFIGURATION;Block specification in configuration must reference a valid architecture or block;3.4.2;P2;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CFG_003;BNF_COMPONENT_CONFIGURATION;Component specification must reference a declared component;3.4.3;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SUBP_001;BNF_FUNCTION_SPECIFICATION;A function must contain at least one return statement in every execution path;4.2.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SUBP_002;BNF_FUNCTION_SPECIFICATION;A pure function must not reference or modify any signals or variables declared outside the function;4.2.2.1;P1;assignment_driver_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SUBP_003;BNF_FUNCTION_SPECIFICATION;Function formal parameters of mode OUT or INOUT are not permitted (only IN allowed);4.2.2.1;P1;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SUBP_004;BNF_PROCEDURE_SPECIFICATION;Procedure formal parameter names must be unique within the parameter list;4.2.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SUBP_005;BNF_SUBPROGRAM_BODY;Subprogram body parameter list must conform to its declaration parameter list;4.2.1;P1;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SUBP_006;BNF_SUBPROGRAM_BODY;A subprogram body must have a corresponding declaration if the declaration exists;4.2;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_PKG_001;BNF_PACKAGE_DECLARATION;Package name must be unique within the design library;4.5;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_PKG_002;BNF_PACKAGE_BODY;A package body must have a corresponding package declaration;4.7;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_PKG_003;BNF_PACKAGE_BODY;Items declared in package body must have been declared in the package declaration;4.7;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_001;BNF_TYPE_DECLARATION;A type name must be unique within its declarative region;6.2;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_002;BNF_ARRAY_TYPE_DEFINITION;Index subtype in array type definition must be a discrete type;5.3.2.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_003;BNF_ARRAY_TYPE_DEFINITION;Element type in array type definition must be a valid type or subtype;5.3.2.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_004;BNF_RECORD_TYPE_DEFINITION;Record element names must be unique within the record type;5.3.3;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_005;BNF_RANGE_CONSTRAINT;Range constraint bounds must be of the same discrete type;5.3.2.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_006;BNF_RANGE_CONSTRAINT;Range constraint left bound must be a locally static expression of the index type;5.3.2.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_007;BNF_ENUMERATION_TYPE_DEFINITION;Enumeration literal identifiers must be unique within the enumeration type definition;5.2.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_008;BNF_PHYSICAL_TYPE_DEFINITION;Primary unit declaration in physical type must be a valid identifier;5.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_009;BNF_INTEGER_TYPE_DEFINITION;Integer type range bounds must be locally static expressions;5.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_010;BNF_FLOATING_TYPE_DEFINITION;Floating type range bounds must be locally static expressions;5.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_011;BNF_ACCESS_TYPE_DEFINITION;Subtype indication in access type definition must denote a valid type;5.4.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_012;BNF_FILE_TYPE_DEFINITION;Type mark in file type definition must denote an existing type;5.5.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_013;BNF_INCOMPLETE_TYPE_DECLARATION;An incomplete type declaration must have a corresponding full type declaration in the same declarative region;6.2;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_TYPE_014;BNF_FULL_TYPE_DECLARATION;Full type declaration corresponding to an incomplete type must be in the same declarative region;6.2;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_001;BNF_SIGNAL_DECLARATION;Signal subtype indication must denote a valid type or subtype;6.4.2.3;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_002;BNF_SIGNAL_DECLARATION;Signal default expression (if present) must be of the same type as the signal;6.4.2.3;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_003;BNF_SIGNAL_DECLARATION;Register kind signal declaration is only permitted within a process statement;6.4.2.3;P2;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_004;BNF_VARIABLE_DECLARATION;Variable default expression must be of the same type as the variable subtype;6.4.2.4;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_005;BNF_SHARED_VARIABLE_DECLARATION;Shared variable type must be a protected type;6.4.2.4;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_006;BNF_CONSTANT_DECLARATION;A deferred constant declaration must have a corresponding full constant declaration in the package body;6.4.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_007;BNF_CONSTANT_DECLARATION;Constant initial value expression must be of the same type as the constant subtype;6.4.2.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_008;BNF_ALIAS_DECLARATION;The name referenced in an alias declaration must be a valid static name;6.6.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_009;BNF_ALIAS_DECLARATION;Alias subtype indication (if present) must be compatible with the aliased object type;6.6.1;P2;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_010;BNF_ATTRIBUTE_DECLARATION;Attribute type mark must reference a valid type or subtype;6.7;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_011;BNF_ATTRIBUTE_SPECIFICATION;The entity specification in an attribute specification must reference a valid named entity;7.2;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_012;BNF_COMPONENT_DECLARATION;Component local port names must be unique;6.8;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DECL_013;BNF_COMPONENT_DECLARATION;Component local generic names must be unique;6.8;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CFGS_001;BNF_COMPONENT_SPECIFICATION;Component specification must reference a previously declared component;7.3.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_NAME_001;BNF_NAME;Every identifier used as a name must have a visible declaration;8.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_NAME_002;BNF_SELECTED_NAME;Selected name prefix must denote a valid package, library, or design unit;8.5;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_NAME_003;BNF_INDEXED_NAME;Number of indices in an indexed name must match the array type dimensionality;8.4;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_NAME_004;BNF_SLICE_NAME;Slice range direction must match the array index direction;8.4;P2;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_NAME_005;BNF_ATTRIBUTE_NAME;Attribute name prefix must belong to a class for which the attribute is defined;8.6;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_001;BNF_EXPRESSION;Binary operator operands must be of compatible types;9.2;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_002;BNF_EXPRESSION;Logical operators (and, or, nand, nor, xor, xnor, not) require operands of type BIT, BOOLEAN, or array of BIT/BOOLEAN;9.2;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_003;BNF_EXPRESSION;Relational operators require operands of the same type;9.2;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_004;BNF_EXPRESSION;Adding operators (+/-) require numeric operands;9.2;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_005;BNF_EXPRESSION;Multiplication operators require numeric operands (integer or floating point);9.2;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_006;BNF_EXPRESSION;The & (concatenation) operator requires operands of the same array element type or one array and one element;9.2;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_007;BNF_AGGREGATE;Aggregate element associations must be compatible with the array or record element types;9.3.3.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_008;BNF_AGGREGATE;Named association in an aggregate requires a record type target;9.3.3.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_009;BNF_AGGREGATE;Aggregate must provide associations for all elements of the target type (positional for array, or all record fields);9.3.3.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_010;BNF_FUNCTION_CALL;Number of actual parameters must match the number of formal parameters in the function declaration;9.3.4;P1;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_011;BNF_FUNCTION_CALL;Actual parameter types must be compatible with formal parameter types;9.3.4;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_012;BNF_QUALIFIED_EXPRESSION;Qualified expression type mark must denote an existing type;9.3.6;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_013;BNF_QUALIFIED_EXPRESSION;Qualified expression operand must be of the type indicated by the type mark;9.3.6;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_014;BNF_TYPE_CONVERSION;Type conversion between unrelated types is not permitted;9.3.6;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_015;BNF_ALLOCATOR;Allocator subtype indication must denote an existing type or subtype;9.3.7;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_EXPR_016;BNF_LITERAL;Numeric literal value must be within the range of the target type;9.3.3.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_001;BNF_SIGNAL_ASSIGNMENT_STATEMENT;Target of a signal assignment must be a signal (not a variable, constant, or port of mode IN);10.5.2.1;P1;assignment_driver_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_002;BNF_SIGNAL_ASSIGNMENT_STATEMENT;Waveform expression type must match the target signal type;10.5.2.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_003;BNF_VARIABLE_ASSIGNMENT_STATEMENT;Target of a variable assignment must be a variable (not a signal or constant);10.6.1;P1;assignment_driver_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_004;BNF_VARIABLE_ASSIGNMENT_STATEMENT;Assignment expression type must match the target variable type;10.6.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_005;BNF_IF_STATEMENT;IF statement condition expression must be of type BOOLEAN;10.8;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_006;BNF_CASE_STATEMENT;Case statement expression must be of a discrete type or a one-dimensional array of characters;10.9;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_007;BNF_CASE_STATEMENT;Case statement choices must cover all possible values of the expression type;10.9;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_008;BNF_CASE_STATEMENT;Each value of the case expression type must be covered exactly once across all choices;10.9;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_009;BNF_CASE_STATEMENT_ALTERNATIVE;Case statement choice values must be of the same type as the case expression;10.9;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_010;BNF_LOOP_STATEMENT;FOR loop parameter must be of a discrete type in the iteration scheme range;10.10;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_011;BNF_LOOP_STATEMENT;WHILE loop condition must be of type BOOLEAN;10.10;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_012;BNF_WAIT_STATEMENT;WAIT statement is not permitted inside a process with a sensitivity list;10.2;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_013;BNF_WAIT_STATEMENT;WAIT statement condition clause expression must be of type BOOLEAN;10.2;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_014;BNF_ASSERTION_STATEMENT;Assert condition expression must be of type BOOLEAN;10.3;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_015;BNF_ASSERTION_STATEMENT;Report expression must be of type STRING;10.3;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_016;BNF_ASSERTION_STATEMENT;Severity expression must be of type SEVERITY_LEVEL;10.3;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_017;BNF_RETURN_STATEMENT;Return expression type in a function must match the function return type;10.13;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_018;BNF_RETURN_STATEMENT;RETURN statement in a procedure must not contain an expression;10.13;P1;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_019;BNF_NEXT_STATEMENT;NEXT statement loop label must reference an enclosing loop;10.12;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_020;BNF_EXIT_STATEMENT;EXIT statement loop label must reference an enclosing loop;10.11;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_021;BNF_NEXT_STATEMENT;NEXT statement condition must be of type BOOLEAN;10.12;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_022;BNF_EXIT_STATEMENT;EXIT statement condition must be of type BOOLEAN;10.11;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_023;BNF_PROCEDURE_CALL;Number of actual parameters in procedure call must match the number of formal parameters;10.4;P1;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_024;BNF_PROCEDURE_CALL;Actual parameter types in procedure call must be compatible with formal parameter types;10.4;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_025;BNF_FORCE_ASSIGNMENT;Force assignment is only valid in a process or subprogram (not in concurrent context);10.5.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SEQ_026;BNF_RELEASE_ASSIGNMENT;Release assignment target must reference a currently forced signal;10.5.2.1;P1;assignment_driver_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_001;BNF_PROCESS_STATEMENT;A process sensitivity list must contain only signal names;11.3;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_002;BNF_PROCESS_STATEMENT;Signals in a process sensitivity list must be readable by the process;11.3;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_003;BNF_COMPONENT_INSTANTIATION_STATEMENT;Instantiated unit name must reference a declared component, entity, or configuration;11.7.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_004;BNF_COMPONENT_INSTANTIATION_STATEMENT;Port map actual signals must be compatible with component port types;11.7.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_005;BNF_COMPONENT_INSTANTIATION_STATEMENT;Port map actuals must match port modes: IN port connected to expression/signal, OUT port connected to signal;11.7.1;P1;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_006;BNF_COMPONENT_INSTANTIATION_STATEMENT;Generic map actual expressions must be compatible with component generic types;11.7.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_007;BNF_COMPONENT_INSTANTIATION_STATEMENT;Actual port of mode IN cannot be connected to an aggregate or open;11.7.1;P2;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_008;BNF_COMPONENT_INSTANTIATION_STATEMENT;Unassociated input ports must have a default expression in the component or entity declaration;11.7.1;P2;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_009;BNF_BLOCK_STATEMENT;Block guard condition expression must be of type BOOLEAN;11.2;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_010;BNF_GENERATE_STATEMENT;FOR generate parameter must be of a discrete type;11.8;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_011;BNF_GENERATE_STATEMENT;IF generate condition must be a locally static expression of type BOOLEAN;11.8;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_012;BNF_CONCURRENT_SIGNAL_ASSIGNMENT_STATEMENT;Target of a concurrent signal assignment must be a signal;11.6;P1;assignment_driver_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_013;BNF_CONCURRENT_SIGNAL_ASSIGNMENT_STATEMENT;Waveform types must match the target signal type in concurrent signal assignment;11.6;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_CONC_014;BNF_CONCURRENT_PROCEDURE_CALL_STATEMENT;Concurrent procedure call must reference a valid procedure;11.4;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SCOPE_001;BNF_USE_CLAUSE;Use clause selected name must reference a valid package or design unit;12.4;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SCOPE_002;BNF_USE_CLAUSE;Name referenced after USE must be a visible declaration;12.4;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SCOPE_003;BNF_DECLARATION;Two declarations with the same identifier must not occur in the same declarative region;12.3;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_SCOPE_004;BNF_DECLARATION;A declaration must not hide another declaration with the same name in the same immediate scope;12.3;P2;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DU_001;BNF_DESIGN_UNIT;A design unit name must be unique within the design library (entity, architecture, package, configuration);13.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DU_002;BNF_LIBRARY_CLAUSE;Library clause name must reference an existing design library;13.2;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DU_003;BNF_CONTEXT_CLAUSE;Library clause is required before referencing any design unit from that library;13.2;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_001;BNF_MATCHING_CASE_STATEMENT;Matching case statement requires exact coverage of all expression values (more strict than regular case);10.9;P0;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_002;BNF_CONDITION_OPERATOR;Condition operator (??) operand must be of type BIT or STD_ULOGIC;9.2.1;P0;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_003;BNF_CONDITIONAL_EXPRESSIONS;Each condition in a conditional expression must be of type BOOLEAN;9.2.1;P0;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_004;BNF_CONTEXT_DECLARATION;Context declaration name must be unique within the design library;13.2;P0;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_005;BNF_EXTERNAL_NAME;External name pathname must reference a valid object in the design hierarchy;8.7;P0;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_006;BNF_FORCE_ASSIGNMENT;Force assignment effective mode must be compatible with the target signal;10.5.2.1;P0;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_007;BNF_PACKAGE_INSTANTIATION_DECLARATION;Package instantiation generic map must match the uninstantiated package formal generics;4.6;P0;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_008;BNF_SUBPROGRAM_INSTANTIATION_DECLARATION;Subprogram instantiation generic map must match the uninstantiated subprogram formal generics;4.4;P0;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_009;BNF_PROTECTED_TYPE_DECLARATION;Protected type method declarations must have corresponding method bodies in the protected type body;5.4.2;P0;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_010;BNF_CASE_GENERATE_STATEMENT;Case generate expression must be of a discrete type or one-dimensional character array;11.8;P0;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_2008_011;BNF_CASE_GENERATE_STATEMENT;Case generate alternatives must cover all possible values of the expression type;11.8;P0;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_IFACE_001;BNF_INTERFACE_LIST;Formal port mode IN cannot be updated (assigned) in the architecture body;6.5.6.2;P1;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_IFACE_002;BNF_INTERFACE_LIST;Formal port of mode OUT or INOUT cannot be read in the architecture body;6.5.6.2;P1;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_IFACE_003;BNF_INTERFACE_LIST;Buffer ports have restricted connectivity: only one source, must connect to OUT or BUFFER;6.5.6.2;P2;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_IFACE_004;BNF_PORT_MAP_ASPECT;Port map association element formal part must reference a valid port of the instantiated unit;6.5.7.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_IFACE_005;BNF_GENERIC_MAP_ASPECT;Generic map association element must reference a valid generic of the instantiated unit;6.5.7.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_IFACE_006;BNF_ASSOCIATION_ELEMENT;Association element formal part type must match the actual part type;6.5.7.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DRV_001;BNF_CONCURRENT_SIGNAL_ASSIGNMENT_STATEMENT;A resolved signal may have multiple drivers only if the resolution function is defined for the type;11.6;P2;assignment_driver_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DRV_002;BNF_CONDITIONAL_SIGNAL_ASSIGNMENT;Conditional signal assignment conditions must be of type BOOLEAN;10.5.2.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DRV_003;BNF_SELECTED_SIGNAL_ASSIGNMENT;Selected signal assignment choices must cover all possible values of the select expression;10.5.2.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DRV_004;BNF_CONDITIONAL_VARIABLE_ASSIGNMENT;Conditional variable assignment conditions must be of type BOOLEAN;10.6.1;P1;type_mismatch;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_DRV_005;BNF_SELECTED_VARIABLE_ASSIGNMENT;Selected variable assignment choices must cover all possible values of the select expression;10.6.1;P1;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_ELAB_001;BNF_COMPONENT_INSTANTIATION_STATEMENT;Direct entity instantiation must reference an existing entity declaration;11.7.1;P1;scope_visibility_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_ELAB_002;BNF_CONFIGURATION_DECLARATION;Configuration must bind all component instances to entities and architectures;3.4.1;P2;declaration_elaboration_error;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_ELAB_003;BNF_GENERIC_MAP_ASPECT;Generic map must provide values for all generics or generics must have default values;6.5.7.1;P1;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15
+SEM_ELAB_004;BNF_PORT_MAP_ASPECT;Port map must provide connections for all ports or ports must have default values;6.5.7.1;P1;interface_violation;Covered;N/A;1.0;2026-07-23T00:54:06;2026-07-23T01:11:15

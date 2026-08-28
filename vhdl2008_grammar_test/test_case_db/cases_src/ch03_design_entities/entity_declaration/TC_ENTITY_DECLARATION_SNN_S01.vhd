@@ -1,0 +1,11 @@
+-- =============================================================
+-- Case ID: TC_ENTITY_DECLARATION_SNN_S01
+-- Rule Type: Syntax
+-- BNF Production: ENTITY_DECLARATION
+-- Standard Reference: IEEE 1076-2008 Section 3.2.1
+-- Test Focus: entity_declaration: missing "is" keyword
+-- Case Type: Negative (Production-Specific)
+-- Expected Result: Triggers syntax error
+-- Dependencies: None
+-- =============================================================
+entity bad_ent port(x:in integer); end entity;  -- ERROR: missing "is"

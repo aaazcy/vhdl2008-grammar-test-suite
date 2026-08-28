@@ -1,0 +1,12 @@
+-- =============================================================
+-- Case ID: TC_ENTITY_DECLARATION_SNN_003
+-- Rule Type: Syntax
+-- Related Rule ID: BNF_ENTITY_DECLARATION
+-- Standard Reference: IEEE 1076-2008 Section 3.2.1
+-- Production: entity_declaration ::= entity identifier is entity_header entity_declarative_part [ begin entity_statement_part ] end [ entity ] [ entity_simple_name ] ;
+-- Case Type: Negative
+-- Test Focus: SNN: missing "end" — `entity bad_ent is port(x:in bit);`, entity declaration ends directly after the port clause and semicolon, missing the `end [entity] [identifier];` closure, verifying the parser requires the entity to terminate with the end keyword
+-- Expected Result: Triggers syntax error: missing "end" keyword, entity not closed
+-- Dependencies: None
+-- =============================================================
+entity bad_ent is port(x:in bit);

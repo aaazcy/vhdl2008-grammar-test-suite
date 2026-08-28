@@ -1,0 +1,2 @@
+ 177  field: Test Focus
+max line number of a CJK line: 10

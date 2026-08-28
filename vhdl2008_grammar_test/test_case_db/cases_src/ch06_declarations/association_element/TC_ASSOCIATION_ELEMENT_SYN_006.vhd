@@ -1,0 +1,42 @@
+-- =============================================================
+-- Case ID: TC_ASSOCIATION_ELEMENT_SYN_006
+-- Rule Type: Syntax
+-- Related Rule ID: BNF_ASSOCIATION_ELEMENT
+-- Standard Reference: IEEE 1076-2008 Section 6.5.7.1
+-- Production: association_element ::= [ formal_part => ] actual_part
+-- Case Type: Positive
+-- Test Focus: Exercises association_element syntax variant 6 with progressively complex VHDL structures exercising the full BNF production.
+-- Expected Result: Compiles successfully
+-- Dependencies: None
+-- =============================================================
+entity association_element_syn6 is
+  port (
+    a : in  bit_vector(3 downto 0);
+    b : in  bit_vector(3 downto 0);
+    y : out bit_vector(4 downto 0)
+  );
+end entity association_element_syn6;
+
+architecture rtl of association_element_syn6 is
+  component adder is
+    port (
+      op_a : in  bit_vector(3 downto 0);
+      op_b : in  bit_vector(3 downto 0);
+      cin  : in  bit;
+      sum  : out bit_vector(3 downto 0);
+      cout : out bit
+    );
+  end component;
+  signal s_sum  : bit_vector(3 downto 0);
+  signal s_cout : bit;
+begin
+  u_add : adder
+    port map (
+      op_a => a,
+      op_b => b,
+      cin  => '0',
+      sum  => s_sum,
+      cout => s_cout
+    );
+  y <= s_cout & s_sum;
+end architecture rtl;

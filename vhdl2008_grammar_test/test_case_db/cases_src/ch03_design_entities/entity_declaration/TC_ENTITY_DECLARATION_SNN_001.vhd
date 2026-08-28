@@ -1,0 +1,12 @@
+-- =============================================================
+-- Case ID: TC_ENTITY_DECLARATION_SNN_001
+-- Rule Type: Syntax
+-- Related Rule ID: BNF_ENTITY_DECLARATION
+-- Standard Reference: IEEE 1076-2008 Section 3.2.1
+-- Production: entity_declaration ::= entity identifier is entity_header entity_declarative_part [ begin entity_statement_part ] end [ entity ] [ entity_simple_name ] ;
+-- Case Type: Negative
+-- Test Focus: SNN: missing "is" — `entity bad_ent port(x:in bit); end entity;`, port clause appears where "is" should be, verifying the parser requires the "is" keyword after entity identifier before entity_header can begin
+-- Expected Result: Triggers syntax error: missing "is" keyword
+-- Dependencies: None
+-- =============================================================
+entity bad_ent port(x:in bit); end entity;

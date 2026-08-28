@@ -1,0 +1,12 @@
+-- =============================================================
+-- Case ID: TC_ENTITY_DECLARATION_SNN_009
+-- Rule Type: Syntax
+-- Related Rule ID: BNF_ENTITY_DECLARATION
+-- Standard Reference: IEEE 1076-2008 Section 3.2.1
+-- Production: entity_declaration ::= entity identifier is entity_header entity_declarative_part [ begin entity_statement_part ] end [ entity ] [ entity_simple_name ] ;
+-- Case Type: Negative
+-- Test Focus: SNN: Keyword order error — `entity is ent_name port(x:in bit); end entity;`, "is" appears before the identifier, the "entity is identifier" keyword order is broken, verifying the strict `entity identifier is` order required by the BNF
+-- Expected Result: Triggers syntax error: keyword ordering violation — "is" before identifier
+-- Dependencies: None
+-- =============================================================
+entity is bad_order port(x:in bit); end entity;

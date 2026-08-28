@@ -1,0 +1,12 @@
+-- =============================================================
+-- Case ID: TC_ENTITY_DECLARATION_SNN_002
+-- Rule Type: Syntax
+-- Related Rule ID: BNF_ENTITY_DECLARATION
+-- Standard Reference: IEEE 1076-2008 Section 3.2.1
+-- Production: entity_declaration ::= entity identifier is entity_header entity_declarative_part [ begin entity_statement_part ] end [ entity ] [ entity_simple_name ] ;
+-- Case Type: Negative
+-- Test Focus: SNN: missing entity_name — `entity is port(x:in bit); end entity;`, "is" appears directly after the "entity" keyword, the identifier slot is empty, verifying the parser requires a valid simple_name or extended_identifier immediately after the entity keyword
+-- Expected Result: Triggers syntax error: missing entity identifier
+-- Dependencies: None
+-- =============================================================
+entity is port(x:in bit); end entity;

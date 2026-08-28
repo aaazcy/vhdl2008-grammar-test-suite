@@ -1,0 +1,95 @@
+# VHDL 2008 Grammar & Semantic Test Suite
+
+A comprehensive, hand-crafted test suite for the **VHDL 2008** language (IEEE Std 1076-2008), covering the grammar (Annex C BNF productions) and static semantic rules, verified with the open-source **GHDL** simulator.
+
+## Highlights
+
+- **5,185 test files** organized by chapter and BNF production, across 12 chapters (ch03–ch15)
+- **314 unique productions** (310 from the IEEE 1076-2008 Annex C syntax summary reference)
+- **139 semantic rules** covering declarations, names, expressions, statements, visibility, and elaboration semantics
+- Four test categories per production:
+  - `SYN` — syntactically legal constructs (must analyze)
+  - `SNN` — syntactically illegal constructs (must be rejected)
+  - `SEM` — semantically legal constructs (must elaborate)
+  - `SMN` — semantically illegal constructs (must be rejected)
+- Fully verified pipeline: **0 issues** in the consistency gate, **0 failures** in the GHDL 6.0 full-suite run
+- Machine-checkable documentation: every test case is traceable from the master test plan through Appendix E to the individual `.vhd` file
+
+## Repository Layout
+
+```
+vhdl2008_grammar_test/
+├── test_case_db/
+│   ├── cases_src/chNN_<chapter>/<production>/   # 5,185 test files by production
+│   └── reference/                                # BNF reference + semantic rules (CSV)
+├── test_plan/                                    # master test plan + Appendix E traceability
+└── reports/                                      # coverage, GHDL results, architecture mindmap
+presentation/                                     # self-contained work-report page
+.claude/                                          # Claude Code agent/hook configuration
+sync_all.py                                       # unified sync + verification pipeline
+build_test_trace.py                               # Appendix E traceability matrix generator
+run_ghdl_suite.py                                 # GHDL analysis suite runner
+generate_arch_pdf.py                              # architecture PDF + reports portal
+build_presentation.py                             # work-report presentation builder
+serve_project.py                                  # LAN web access (port 8090)
+```
+
+## Quick Start
+
+Requirements:
+
+- Python ≥ 3.7
+- [GHDL](https://github.com/ghdl/ghdl) ≥ 4 (tested with 6.0)
+- Optional: pandoc (test-plan HTML/DOCX export), node + mermaid-cli (architecture diagrams)
+
+```bash
+# Full consistency check (read-only, exit 0 = everything consistent)
+python sync_all.py --verify-only
+
+# Rebuild all derived artifacts (docs, reports, presentation)
+python sync_all.py --quick
+python sync_all.py --full
+
+# Run the whole suite through GHDL (~20-40 min on 8+ cores)
+python run_ghdl_suite.py --workers 16
+```
+
+## Test Case Structure
+
+Every test file is a self-contained VHDL design unit with a standardized header:
+
+```vhdl
+-- Case ID: TC_<PRODUCTION>_<CATEGORY>_NNN
+-- Rule Description: ...
+-- Error Category: ...
+-- Test Focus: SYN: ...
+-- Expected Result: ...
+-- Related Rule ID: ...
+-- BNF Production: <annex C production>
+```
+
+Files are named `TC_<PRODUCTION>_<CATEGORY>_NNN.vhd` and are organized as
+`cases_src/chNN_<chapter>/<production>/`.
+
+## Verification
+
+| Check | Command | Expected |
+|---|---|---|
+| Consistency gate | `python sync_all.py --verify-only` | `0 issues found`, exit 0 |
+| GHDL analysis | `python run_ghdl_suite.py --workers 16` | `Failures: 0` |
+
+The consistency gate cross-checks the test plan, coverage report, production
+tracker, Appendix E traceability matrix, architecture mindmap, and the
+presentation snapshot against the filesystem.
+
+## Claude Code Tooling
+
+The `.claude/` directory contains the agent, skill, and hook configuration
+used to maintain this suite with Claude Code: automated consistency gates at
+session start, machine-recorded change tracking for `cases_src/`, and
+specialized agents for architecture and quality work. See `CLAUDE.md` for the
+project conventions.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

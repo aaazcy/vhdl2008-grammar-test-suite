@@ -1,0 +1,24 @@
+# GHDL work directories (rebuilt on demand)
+ghdl_work/
+.ghdlwork/
+
+# Node deps for report rendering (generate_arch_pdf.py)
+node_modules/
+
+# Backups
+_backup_*/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# LaTeX temp artifacts
+tex2pdf.*/
+
+# Harness runtime state (M-domain, machine-written)
+.claude/sync_pending.log
+
+# Public-export exclusions (internal/one-off artifacts kept out of the public repo)
+/vhdl2008_grammar_test/logs/
+/legacy_scripts/
+/1076-2008.pdf

@@ -1,0 +1,12 @@
+-- =============================================================
+-- Case ID: TC_TYPE_DECLARATION_SYN_001
+-- Rule Type: Syntax
+-- Related Rule ID: BNF_TYPE_DECLARATION
+-- Standard Reference: IEEE 1076-2008 Section 6.2
+-- Production: type_declaration ::= full_type_declaration | incomplete_type_declaration
+-- Case Type: Positive
+-- Test Focus: type_declaration with a complete type_definition - declaring multiple type_definition forms such as integer/array/record, verifying the BNF structure of type_declaration ::= full_type_declaration
+-- Expected Result: Compiles successfully
+-- Dependencies: None
+-- =============================================================
+entity syn001 is end entity; architecture bh of syn001 is type t_my is range 0 to 255; subtype t_sub is t_my range 0 to 15; type t_st is (A,B,C); type t_arr is array(0 to 7) of integer; type t_rc is record x:integer; y:t_st; end record; signal s:t_my:=0; signal ss:t_st:=A; begin s<=128; ss<=B; end architecture bh;
