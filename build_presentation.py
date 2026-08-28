@@ -1092,7 +1092,10 @@ var ARCH_GROUPS = [
   var a = document.getElementById('repo-link');
   var d = document.getElementById('repo-desc');
   if (!a) return;
-  if (location.protocol === 'http:' || location.protocol === 'https:') {
+  if (location.hostname.endsWith('.github.io')) {
+    a.href = 'https://github.com/aaazcy/vhdl2008-grammar-test-suite';
+    d.textContent = 'Browse the full project source on GitHub';
+  } else if (location.protocol === 'http:' || location.protocol === 'https:') {
     a.href = location.origin + '/browse/';
     d.textContent = 'Browse / preview any project file online (VHD sources, reports, scripts)';
   } else {
