@@ -37,7 +37,8 @@ This updates:
 - architecture_mindmap.html: self-contained inline-SVG HTML (offline)
 - VHDL2008_Test_Plan_latest.html: auto-regenerated via generate_arch_pdf.py
 - reports/index.html: reports portal (regenerated)
-- presentation/index.html: work-report page — auto-rebuilt via build_presentation.py (dynamic data injection + PRESENTATION_SNAPSHOT marker; verify_presentation() checks the snapshot against disk)
+- presentation/index.html: work-report page — auto-rebuilt via build_presentation.py (dynamic data injection + PRESENTATION_SNAPSHOT marker + {{ARCH_SPEC}} injected from extract_arch_spec() over architecture_mindmap.md §2.2–§2.5; verify_presentation() checks the snapshot against disk, verify_arch_spec() checks the extracted spec)
+- reports/sync_manifest.json: artifact policy + accepted style refs — written ONLY by `--quick --accept-style-change` (the style-change ritual); verify_manifest() + verify_style_stability() check it read-only
 - Test Plan §8.5 Known Issues / Technical Debt: hand-maintained — verified (heading exists, safe-zone, table shape, no verify-trap text) by verify_debt_chapter(); sync never rewrites it
 
 ### Step 2: Verify
@@ -50,6 +51,8 @@ Output MUST show:
 ```
 OK: All documents consistent with filesystem. 0 issues found.
 ```
+
+The verify run covers the GHDL gate, facts/claims (7k), presentation snapshot (7j), arch-spec extraction (7l), and manifest + style refs (7m).
 
 ### Step 3: If Issues Found
 
@@ -68,7 +71,10 @@ If verify reports issues, analyze and fix them immediately:
 | `Architecture diagram references non-existent skill/agent` | Remove stale reference from `reports/architecture_mindmap.md`, then re-run sync |
 | `Architecture diagram missing script/concept token` | Update `reports/architecture_mindmap.md` (mermaid Scripts branch + §2.4 + §4), then re-run sync |
 | `Debt chapter: heading missing / misplaced / malformed table / trap pattern` | Hand-edit §8.5 per its own rules (delete means done + migration log row), then re-run sync |
-| `Presentation snapshot mismatch / stale / missing component name` | Re-run --quick (presentation auto-rebuilds from live data); if a component name is missing from the page, update the drill-down ARCH_GROUPS data in build_presentation.py, then re-run |
+| `Presentation snapshot mismatch / stale` | Re-run --quick (presentation auto-rebuilds from live data) |
+| `Arch spec: ... / parser drift self-check / name not mentioned in presentation` | Component descriptions live ONLY in `architecture_mindmap.md` §2.2–§2.5 — `extract_arch_spec()` parses the `#### 2.x.y <name>` headings + Property tables; fix the mindmap (never hand-write component cards in build_presentation.py); structural parser changes are project-architect coordination, then re-run |
+| `Style/logic drift in ...` | Deliberate change → run `python sync_all.py --quick --accept-style-change` (the ONLY writer of `reports/sync_manifest.json` refs) and commit the change + updated refs with an explanation; never accept silently, then re-run |
+| `ARTIFACT_MANIFEST: ...` | sync_manifest.json missing → `--quick --accept-style-change` seeds the refs; unknown policy / dead generator → handoff to project-architect, then re-run |
 | `Fact claim stale` / `Hardcoded fact claim in source` | Every factual claim (numbers/paths/counts) must come from `project_facts.py` compute_facts() or a CLAIM_REGISTRY entry — fix the claim to the live fact; if a genuinely new claim type is needed, handoff-request a registry entry (project-architect domain), then re-run |
 
 Then re-run Step 1 and Step 2 until clean.

@@ -9,6 +9,9 @@ Usage:
   python3 sync_all.py --quick                        # Daily: Sections, Coverage, Section 9, Tracker
   python3 sync_all.py --full --message "Phase N:..." # Full: +Appendix E + DOCX/HTML
   python3 sync_all.py --verify-only                   # Read-only: find mismatches, report only
+  python3 sync_all.py --quick --accept-style-change   # Rebuild + accept the new
+      # style fingerprints into reports/sync_manifest.json (the explicit,
+      # reviewable style-change ritual — the ONLY writer of the manifest)
 
 Verify-only exit code contract (machine gate for external hooks):
   exit 0 = 0 issues found (done); exit 1 = any issue, including WARN-level.
@@ -25,6 +28,9 @@ What it syncs:
   9. Architecture HTML + reports/index.html portal — via generate_arch_pdf.py
   10. Presentation — presentation/index.html rebuilt via build_presentation.py
       (dynamic data injection + PRESENTATION_SNAPSHOT freshness marker)
+  11. Style/manifest acceptance (--accept-style-change only) — recomputes the
+      style fingerprints and writes reports/sync_manifest.json; verify checks
+      them read-only (verify_manifest + verify_style_stability, step 7m)
 """
 
 import os
@@ -33,6 +39,7 @@ import sys
 import csv
 import json
 import shutil
+import hashlib
 import argparse
 import subprocess
 from datetime import datetime
@@ -53,6 +60,43 @@ GHDL_RESULTS = os.path.join(BASE, 'reports', 'ghdl_test_results.md')
 GHDL_MANIFEST = os.path.join(BASE, 'reports', 'ghdl_run_manifest.json')
 BNF_REF_CSV = os.path.join(BASE, 'test_case_db', 'reference', 'bnf_reference.csv')
 SEM_REF_CSV = os.path.join(BASE, 'test_case_db', 'reference', 'semantic_rules.csv')
+SYNC_MANIFEST = os.path.join(BASE, 'reports', 'sync_manifest.json')
+
+# === ARTIFACT_MANIFEST — generated-artifact policy registry ===
+#
+# Every generated artifact the sync pipeline produces is registered here with
+# a policy:
+#   * direct — pure data-driven; regenerated freely, already covered by the
+#     existing consistency gates.
+#   * script-then-generate — generator-owned structure; data may change
+#     freely, but structure/style/logic is protected by style fingerprints
+#     (style_refs) accepted only via `--quick --accept-style-change`.
+# The manifest file itself (reports/sync_manifest.json) is written ONLY by
+# the acceptance ritual; verify_manifest() + verify_style_stability() check
+# it read-only in every verify run.
+MANIFEST_ARTIFACTS = (
+    # --- direct (pure data-driven; covered by existing consistency gates) ---
+    ('test_plan/VHDL2008_Grammar_Semantic_Test_Plan.md', 'sync_all.py', 'direct'),
+    ('test_plan/Appendix_E_Traceability_Matrix.md', 'build_test_trace.py', 'direct'),
+    ('reports/coverage_summary.md', 'sync_all.py', 'direct'),
+    ('PRODUCTION_TRACKER.md', 'sync_all.py', 'direct'),
+    ('reports/ghdl_test_results.md', 'run_ghdl_suite.py', 'direct'),
+    ('reports/ghdl_failures.csv', 'run_ghdl_suite.py', 'direct'),
+    ('reports/ghdl_allowlist.csv', 'run_ghdl_suite.py', 'direct'),
+    ('reports/ghdl_warn_reject.csv', 'run_ghdl_suite.py', 'direct'),
+    ('test_plan/VHDL2008_Test_Plan_latest.html', 'generate_arch_pdf.py', 'direct'),
+    ('test_plan/VHDL2008_Test_Plan_latest.docx', 'sync_all.py', 'direct'),
+    # --- script-then-generate (structure/style/logic protected by style_refs) ---
+    ('presentation/index.html', 'build_presentation.py', 'script-then-generate'),
+    ('reports/architecture_mindmap.html', 'generate_arch_pdf.py', 'script-then-generate'),
+    ('reports/index.html', 'generate_arch_pdf.py', 'script-then-generate'),
+    ('reports/architecture_mindmap.pdf', 'generate_arch_pdf.py', 'script-then-generate'),
+)
+
+# Generator template-block names whose triple-quoted assignments are
+# fingerprinted generator-side (data arrays / payload blocks are excluded by
+# being named outside this tuple).
+GENERATOR_TEMPLATE_BLOCKS = ('TEMPLATE', 'CSS_STYLE', 'page')
 
 # Architecture diagram verification: the living root scripts are live-scanned
 # from the repo root (every .py minus what is archived under legacy_scripts/
@@ -81,6 +125,156 @@ def live_root_scripts():
         if f.endswith('.py') and os.path.isfile(fp):
             scripts.add(f)
     return scripts - legacy
+
+
+# =============================================================================
+# STYLE REFERENCE — style/logic stability fingerprints
+# =============================================================================
+#
+# Fingerprints separate data from structure/style/logic:
+#   * skeleton (HTML) — the sequence of (tag, class, id) tokens with ALL text
+#     content and digit sequences stripped. Masking order: <svg>/<style>/
+#     <script> blocks removed (depth-counting scanner), INJ marker regions
+#     (`<!--INJ:X-->…<!--/INJ:X-->` — injected data rows) removed, remaining
+#     comments removed, `>[^<]*<` → `><` (text content), `\d+` → '' (digit
+#     sequences). Insensitive to numbers, injected rows, JSON payloads, dates
+#     and diagram re-renders.
+#   * skeleton (Markdown) — the sequence of `^#{1,4}` headings with numbers
+#     masked (`\d+` → `N`). (No script-then-generate artifact is markdown
+#     today; implemented for completeness.)
+#   * css — sha256 of the <style> block (HTML artifacts).
+#   * js — sha256 of the <script> block with the data region masked
+#     (`/*ARCH_SPEC_BEGIN*/…/*ARCH_SPEC_END*/` — the injected architecture
+#     spec JSON; the viewer engine / makeViewer / scrollspy / drill-down
+#     RENDERER logic is protected as-is).
+#   * generator template skeleton — the generator's named triple-quoted
+#     template blocks (TEMPLATE / CSS_STYLE / page) with {{TOKEN}}
+#     placeholders and f-string interpolations normalized to empty, then the
+#     same HTML skeleton masking. Data arrays (e.g. TIMELINE_MMD) are named
+#     outside the tuple and stay excluded.
+# The PDF has no skeleton possible: existence + a size window relative to the
+# accepted size (0.5x–2x) is verified instead (noted in the manifest).
+
+
+def _sha256(text):
+    return hashlib.sha256(text.encode('utf-8', errors='replace')).hexdigest()
+
+
+def _strip_tag_block(text, tag):
+    """Remove <tag ...>…</tag> blocks with a nesting-depth scanner."""
+    out = []
+    pos = 0
+    open_re = re.compile(r'<%s\b' % tag, re.IGNORECASE)
+    close_re = re.compile(r'</%s\s*>' % tag, re.IGNORECASE)
+    while True:
+        m = open_re.search(text, pos)
+        if not m:
+            out.append(text[pos:])
+            return ''.join(out)
+        out.append(text[pos:m.start()])
+        depth = 1
+        i = m.end()
+        while depth > 0:
+            nxt_open = open_re.search(text, i)
+            nxt_close = close_re.search(text, i)
+            if not nxt_close:
+                # unbalanced — keep the rest verbatim and stop scanning
+                out.append(text[m.start():])
+                return ''.join(out)
+            if nxt_open and nxt_open.start() < nxt_close.start():
+                depth += 1
+                i = nxt_open.end()
+            else:
+                depth -= 1
+                i = nxt_close.end()
+        pos = i
+
+
+def _strip_inj_regions(text):
+    """Remove injected-data regions delimited by INJ marker comments."""
+    return re.sub(r'<!--INJ:([A-Za-z0-9_]+)-->[\s\S]*?<!--/INJ:\1-->', '', text)
+
+
+def html_skeleton(text):
+    """Data-insensitive structural fingerprint of an HTML document."""
+    t = _strip_tag_block(text, 'svg')
+    t = _strip_tag_block(t, 'style')
+    t = _strip_tag_block(t, 'script')
+    t = _strip_inj_regions(t)
+    t = re.sub(r'<!--[\s\S]*?-->', '', t)
+    t = re.sub(r'>[^<]*<', '><', t)
+    t = re.sub(r'\d+', '', t)
+    tokens = []
+    for m in re.finditer(r'<(/?)([A-Za-z][\w-]*)((?:[^<>]*?)/?)>', t):
+        attrs = m.group(3).rstrip('/')
+        cm = re.search(r'class="([^"]*)"', attrs)
+        cls = cm.group(1) if cm else ''
+        idm = re.search(r'\bid="([^"]*)"', attrs)
+        ident = idm.group(1) if idm else ''
+        tokens.append('%s%s%s' % (m.group(2),
+                                  '.' + cls if cls else '',
+                                  '#' + ident if ident else ''))
+    return _sha256('\n'.join(tokens))
+
+
+def md_skeleton(text):
+    """Data-insensitive structural fingerprint of a markdown document
+    (heading skeleton, numbers masked)."""
+    heads = []
+    for line in text.splitlines():
+        m = re.match(r'^(#{1,4})\s+(.*)$', line)
+        if m:
+            heads.append(re.sub(r'\d+', 'N', m.group(2).strip()))
+    return _sha256('\n'.join(heads))
+
+
+def css_fingerprint(text):
+    """sha256 of the <style> block (None if absent)."""
+    m = re.search(r'<style[^>]*>([\s\S]*?)</style>', text)
+    return _sha256(m.group(1)) if m else None
+
+
+def js_fingerprint(text):
+    """sha256 of the <script> block with the ARCH_SPEC data region masked.
+    Empty-content scripts (e.g. the pandoc html5shiv shim with only a src
+    attribute) are treated as absent — no engine to protect."""
+    m = re.search(r'<script[^>]*>([\s\S]*?)</script>', text)
+    if not m:
+        return None
+    js = re.sub(r'/\*ARCH_SPEC_BEGIN\*/[\s\S]*?/\*ARCH_SPEC_END\*/', '', m.group(1))
+    if not js.strip():
+        return None
+    return _sha256(js)
+
+
+def generator_template_skeleton(source):
+    """Fingerprint a generator's named triple-quoted template blocks with
+    placeholders/interpolations normalized to empty (same masking
+    discipline). Returns None when no template block is found. Leading
+    indentation is allowed (e.g. generate_arch_pdf.py's `page` template sits
+    inside build_portal())."""
+    blocks = []
+    for name in GENERATOR_TEMPLATE_BLOCKS:
+        for m in re.finditer(
+                rf'^\s*{re.escape(name)}\b\s*=\s*(?:r|f)?(\'\'\'|""")',
+                source, re.MULTILINE):
+            q = m.group(1)
+            end = source.find(q, m.end())
+            if end == -1:
+                continue
+            block = source[m.end():end]
+            block = re.sub(r'\{\{[A-Za-z0-9_]+\}\}', '', block)  # placeholders
+            block = re.sub(r'\{[^{}\n]*\}', '', block)  # f-string interpolations
+            blocks.append(block)
+    if not blocks:
+        return None
+    return html_skeleton('\n'.join(blocks))
+
+
+def _manifest_abs(relpath):
+    if relpath == 'PRODUCTION_TRACKER.md' or relpath.startswith('presentation/'):
+        return os.path.join(ROOT_DIR, relpath)
+    return os.path.join(BASE, relpath)
 
 
 # =============================================================================
@@ -1392,16 +1586,30 @@ def verify_presentation(totals):
         issues.append(f'Presentation: snapshot scripts stale ({sorted(actual_scripts - snap_scripts)} on disk) '
                       f'— rebuild via sync_all.py --quick')
 
-    # every on-disk skill/agent name must appear in the page content
-    # (drill-down ARCH_GROUPS narrative can lag behind the disk)
+    # every on-disk skill/agent/script name and every extracted doc name must
+    # appear in the page content (the drill-down is rendered from the
+    # architecture spec — extract_arch_spec() over architecture_mindmap.md
+    # §2.2–§2.5 — which can lag behind the disk)
     for s in sorted(actual_skills):
         if s not in html_text:
             issues.append(f'Presentation: skill `{s}` not mentioned in page — '
-                          f'update ARCH_GROUPS in build_presentation.py')
+                          f'update architecture_mindmap.md §2.2–§2.5 and '
+                          f'rebuild via sync_all.py --quick')
     for a in sorted(actual_agents):
         if a not in html_text:
             issues.append(f'Presentation: agent `{a}` not mentioned in page — '
-                          f'update ARCH_GROUPS in build_presentation.py')
+                          f'update architecture_mindmap.md §2.2–§2.5 and '
+                          f'rebuild via sync_all.py --quick')
+    for sc in sorted(actual_scripts):
+        if sc not in html_text:
+            issues.append(f'Presentation: script `{sc}` not mentioned in page — '
+                          f'update architecture_mindmap.md §2.4 and rebuild '
+                          f'via sync_all.py --quick')
+    for d in project_facts.extract_arch_spec().get('docs', []):
+        if d['name'] not in html_text:
+            issues.append(f'Presentation: document `{d["name"]}` not mentioned '
+                          f'in page — update architecture_mindmap.md §2.5 and '
+                          f'rebuild via sync_all.py --quick')
 
     # ghdl freshness vs manifest (skip when manifest missing — verify_ghdl_gate reports that)
     if os.path.exists(GHDL_MANIFEST):
@@ -1488,6 +1696,209 @@ def verify_debt_chapter(plan):
 
 
 # =============================================================================
+# 7l. Architecture-Spec Gate (presentation rendered from the mindmap)
+# =============================================================================
+
+def verify_arch_spec():
+    """Architecture-spec gate (verify 7l): project_facts.extract_arch_spec()
+    must yield exactly the live counts (skills/agents/scripts from disk,
+    docs = §2.5 table rows) and every extracted component name must appear
+    in presentation/index.html (the injected ARCH_SPEC JSON). Zero extracted
+    components = parser-drift self-check."""
+    issues = []
+    facts = project_facts.compute_facts()
+    spec = project_facts.extract_arch_spec()
+    counts = {k: len(v) for k, v in spec.items()}
+    if not any(counts.values()):
+        return ['Arch spec: extraction yielded zero components from '
+                'architecture_mindmap.md §2.2–§2.5 (parser drift self-check '
+                '— check the headings and table shapes)']
+
+    expected = {'skills': ('2.2', facts['skills']),
+                'agents': ('2.3', facts['agents']),
+                'scripts': ('2.4', facts['root_scripts']),
+                'docs': ('2.5', facts['doc_kinds'])}
+    for kind, (section, want) in expected.items():
+        if counts[kind] != want:
+            issues.append(f'Arch spec: extracted {counts[kind]} {kind} from '
+                          f'architecture_mindmap.md §{section} but the live '
+                          f'count is {want} (mindmap drifted from disk)')
+
+    if not os.path.exists(PRESENTATION_INDEX):
+        return issues  # existence reported by verify_presentation
+    with open(PRESENTATION_INDEX, 'r', encoding='utf-8', errors='replace') as f:
+        page = f.read()
+    for kind in ('skills', 'agents', 'scripts', 'docs'):
+        for item in spec[kind]:
+            if item['name'] not in page:
+                issues.append(f'Arch spec: {kind[:-1]} `{item["name"]}` not '
+                              f'mentioned in presentation/index.html — '
+                              f'rebuild via sync_all.py --quick')
+    return issues
+
+
+# =============================================================================
+# 7m. Artifact Manifest + Style/Logic Stability Gate
+# =============================================================================
+
+def verify_manifest():
+    """ARTIFACT_MANIFEST gate: sync_manifest.json must exist and parse; its
+    generator field must name a living root script; every
+    policy=script-then-generate artifact must exist on disk; unknown policy
+    → issue."""
+    issues = []
+    if not os.path.exists(SYNC_MANIFEST):
+        issues.append('ARTIFACT_MANIFEST: reports/sync_manifest.json missing '
+                      '— run sync_all.py --quick --accept-style-change to '
+                      'seed the style references')
+        return issues
+    try:
+        with open(SYNC_MANIFEST, 'r', encoding='utf-8') as f:
+            manifest = json.load(f)
+    except Exception as e:
+        return [f'ARTIFACT_MANIFEST: cannot parse sync_manifest.json: {e}']
+    living = live_root_scripts()
+    for entry in manifest.get('artifacts', []):
+        rel = entry.get('path')
+        policy = entry.get('policy')
+        gen = entry.get('generator')
+        if policy not in ('direct', 'script-then-generate'):
+            issues.append(f'ARTIFACT_MANIFEST: unknown policy {policy!r} for {rel}')
+            continue
+        if gen not in living:
+            issues.append(f'ARTIFACT_MANIFEST: generator {gen!r} for {rel} '
+                          f'is not a living root script')
+        if policy == 'script-then-generate' and not os.path.exists(_manifest_abs(rel)):
+            issues.append(f'ARTIFACT_MANIFEST: {rel} missing — run '
+                          f'sync_all.py --quick to regenerate')
+    return issues
+
+
+def verify_style_stability():
+    """STYLE REFERENCE gate: recompute style fingerprints from current disk
+    and generator sources; any mismatch with the accepted manifest refs is
+    style/logic drift (accept deliberately via --quick --accept-style-change;
+    --verify-only never writes)."""
+    issues = []
+    if not os.path.exists(SYNC_MANIFEST):
+        return issues  # verify_manifest reports the missing file
+    try:
+        with open(SYNC_MANIFEST, 'r', encoding='utf-8') as f:
+            manifest = json.load(f)
+    except Exception:
+        return issues
+
+    gen_drifted = {}  # generator name -> bool (any artifact drifted)
+    for entry in manifest.get('artifacts', []):
+        if entry.get('policy') != 'script-then-generate':
+            continue
+        rel = entry['path']
+        abs_path = _manifest_abs(rel)
+        refs = entry.get('style_refs') or {}
+        gen_drifted.setdefault(entry.get('generator'), False)
+
+        if rel.endswith('.pdf'):
+            # PDF: existence + size-window check (no skeleton possible)
+            if not os.path.exists(abs_path):
+                continue  # existence reported by verify_manifest
+            size = os.path.getsize(abs_path)
+            ref_size = refs.get('pdf_size')
+            if (isinstance(ref_size, int) and ref_size > 0
+                    and not (0.5 * ref_size <= size <= 2.0 * ref_size)):
+                issues.append(f'Style/logic drift in {rel} (pdf size window: '
+                              f'{size} bytes vs accepted {ref_size}) — if '
+                              f'intended, update deliberately via --quick '
+                              f'--accept-style-change and commit both the '
+                              f'change and the manifest')
+                gen_drifted[entry.get('generator')] = True
+            continue
+
+        if not os.path.exists(abs_path):
+            continue  # existence reported by verify_manifest
+        with open(abs_path, 'r', encoding='utf-8', errors='replace') as f:
+            text = f.read()
+        checks = [('skeleton', html_skeleton(text), refs.get('skeleton'))]
+        if refs.get('css'):
+            checks.append(('css', css_fingerprint(text), refs['css']))
+        if refs.get('js'):
+            checks.append(('js', js_fingerprint(text), refs['js']))
+        for which, current, accepted in checks:
+            if current != accepted:
+                issues.append(f'Style/logic drift in {rel} ({which} '
+                              f'fingerprint) — if intended, update '
+                              f'deliberately via --quick --accept-style-change '
+                              f'and commit both the change and the manifest')
+                gen_drifted[entry.get('generator')] = True
+
+    # generator-side: the generator's template skeleton must match the
+    # accepted ref; drift without any artifact drift = script changed but its
+    # output was not rebuilt/accepted
+    for gen, info in (manifest.get('generators') or {}).items():
+        src = os.path.join(ROOT_DIR, gen)
+        if not os.path.exists(src):
+            continue
+        with open(src, 'r', encoding='utf-8', errors='replace') as f:
+            source = f.read()
+        current = generator_template_skeleton(source)
+        accepted = info.get('template_skeleton')
+        if current != accepted:
+            msg = (f'Style/logic drift in generator {gen} (template skeleton) '
+                   f'— if intended, update deliberately via --quick '
+                   f'--accept-style-change and commit both the change and '
+                   f'the manifest')
+            if not gen_drifted.get(gen):
+                msg += ' (generator template changed but its artifacts are '
+                'unchanged — rebuild via --quick --accept-style-change)'
+            issues.append(msg)
+    return issues
+
+
+def accept_style_changes():
+    """Recompute every style fingerprint from current disk + generator
+    sources and write reports/sync_manifest.json (the explicit, reviewable
+    style-change ritual — the ONLY writer of the manifest)."""
+    manifest = {'artifacts': [], 'generators': {}}
+    for rel, generator, policy in MANIFEST_ARTIFACTS:
+        entry = {'path': rel, 'generator': generator, 'policy': policy}
+        if policy == 'script-then-generate':
+            abs_path = _manifest_abs(rel)
+            if rel.endswith('.pdf'):
+                size = os.path.getsize(abs_path) if os.path.exists(abs_path) else None
+                entry['style_refs'] = {
+                    'pdf_size': size,
+                    'note': 'PDF: existence + size-window check (0.5x–2x of '
+                            'accepted size) — no skeleton possible',
+                }
+            else:
+                with open(abs_path, 'r', encoding='utf-8', errors='replace') as f:
+                    text = f.read()
+                refs = {'skeleton': html_skeleton(text)}
+                css = css_fingerprint(text)
+                if css:
+                    refs['css'] = css
+                js = js_fingerprint(text)
+                if js:
+                    refs['js'] = js
+                entry['style_refs'] = refs
+        manifest['artifacts'].append(entry)
+    for gen in ('build_presentation.py', 'generate_arch_pdf.py'):
+        src = os.path.join(ROOT_DIR, gen)
+        with open(src, 'r', encoding='utf-8', errors='replace') as f:
+            source = f.read()
+        manifest['generators'][gen] = {
+            'template_skeleton': generator_template_skeleton(source)}
+    os.makedirs(os.path.dirname(SYNC_MANIFEST), exist_ok=True)
+    with open(SYNC_MANIFEST, 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, indent=2)
+        f.write('\n')
+    print(f'  Accepted style references into '
+          f'{os.path.relpath(SYNC_MANIFEST, ROOT_DIR)} '
+          f'({len(manifest["artifacts"])} artifacts, '
+          f'{len(manifest["generators"])} generator templates)')
+    return manifest
+
+
+# =============================================================================
 # 7k. Fact-Claim Gate (Facts Authority + Claim Registry)
 # =============================================================================
 
@@ -1551,6 +1962,18 @@ def verify_fact_claims():
             text = f.read()
         masked = project_facts.exempt_zones(text, kind)
         for m in project_facts.scan_claims(text, masked):
+            if m['keys'][0] == 'ANY':
+                # ANY rule: the claim value must equal at least one of the
+                # listed facts (e.g. "N Iron Rules" = CLAUDE.md orchestration
+                # rules OR the vhdl-test-generator content rules)
+                allowed = {facts[k] for k in m['keys'][1:]}
+                if m['values'][0] not in allowed:
+                    truth = ' or '.join(str(facts[k]) for k in m['keys'][1:])
+                    issues.append(
+                        f'Fact claim stale: "{m["text"]}" claims {m["values"][0]} '
+                        f'but truth is {truth} ({m["description"]}) '
+                        f'- {label}:{m["line"]}')
+                continue
             truth = tuple(facts[k] for k in m['keys'])
             if m['values'] != truth:
                 issues.append(
@@ -1714,6 +2137,16 @@ def verify_all(per_production, totals, per_chapter):
     # literal-free, filesystem claims must exist on disk
     issues.extend(verify_fact_claims())
 
+    # 7l. Architecture-spec gate — extract_arch_spec() (§2.2–§2.5) must yield
+    # the live component counts and every name must appear in the presentation
+    issues.extend(verify_arch_spec())
+
+    # 7m. Artifact manifest + style/logic stability gate (sync_manifest.json:
+    # policy registry + accepted style fingerprints; drift accepted only via
+    # --quick --accept-style-change)
+    issues.extend(verify_manifest())
+    issues.extend(verify_style_stability())
+
     return issues
 
 
@@ -1730,6 +2163,12 @@ def main():
                         help='Full sync: +Appendix E +DOCX/HTML')
     parser.add_argument('--verify-only', action='store_true',
                         help='Verify only — no writes, just report mismatches')
+    parser.add_argument('--accept-style-change', action='store_true',
+                        help='Recompute style fingerprints from the rebuilt '
+                             'artifacts + generator sources and write '
+                             'reports/sync_manifest.json (the explicit, '
+                             'reviewable style-change ritual; ignored in '
+                             '--verify-only)')
     parser.add_argument('--message', type=str, default='',
                         help='Description of changes for the generation log')
     parser.add_argument('--phase', type=str, default='',
@@ -1917,6 +2356,17 @@ def main():
                 print(f'  (presentation rebuild skipped: {err})')
         except Exception as e:
             print(f'  (presentation rebuild skipped: {e})')
+
+    # Style-change acceptance ritual (--accept-style-change): recompute all
+    # style fingerprints from the freshly rebuilt artifacts + generator
+    # sources and write sync_manifest.json. Runs after both subprocess builds
+    # so the accepted refs match the outputs on disk; verify_manifest +
+    # verify_style_stability (7m) check them read-only afterwards.
+    if args.accept_style_change and args.verify_only:
+        print('\n  NOTE: --accept-style-change ignored in --verify-only (read-only mode)')
+    elif args.accept_style_change:
+        print('\n[ACCEPT] Accepting style references into sync_manifest.json...')
+        accept_style_changes()
 
     # Quick cross-validation
     print('\n--- Cross-Validation ---')

@@ -31,6 +31,8 @@ Mechanism per rule: **machine-enforced** = enforced by harness exit codes / hook
 
 6. **Facts come from one source** — machine-enforced. Any factual claim (numbers, paths, architecture counts) written into any doc or template must come from `project_facts.py` compute_facts() or be added to CLAIM_REGISTRY; hardcoded fact literals in generator sources are verify failures (verify_fact_claims, step 7k); when a new claim type appears, add a registry entry (blind-spot sealing, claim domain). Machine layer: `verify_fact_claims()` runs in every `--verify-only` — output-side claims must equal the live facts, generator sources must be literal-free, and backticked filesystem claims (README.md, architecture_mindmap.md) must exist on disk.
 
+**Generated-artifact governance** (extends Iron Rule 6): every generated artifact is classified in `reports/sync_manifest.json` as `direct` (pure data-driven) or `script-then-generate` (generator-owned structure/style/logic, protected by accepted style fingerprints). A deliberate style/logic change requires the explicit ritual `python sync_all.py --quick --accept-style-change` — the ONLY writer of the manifest refs — plus a commit explaining the change; verify otherwise reports `Style/logic drift` (verify_manifest + verify_style_stability, step 7m). Architecture component descriptions (skills/agents/scripts/docs) live ONLY in `architecture_mindmap.md` §2.2–§2.5 and are rendered into the presentation by `extract_arch_spec()` (project_facts.py) — hand-written component cards in `build_presentation.py` are a verify failure (verify_arch_spec, step 7l).
+
 ## Harness Enforcement Layer
 
 `.claude/settings.json` + `.claude/hooks/*.py` turn Iron Rules 1/5 from model discipline into machine records and machine reminders (Iron Rule 6 is machine-enforced by `verify_fact_claims()`, step 7k, inside every `--verify-only`):
@@ -71,8 +73,9 @@ Boundaries: project-architect never edits `.claude/` or CLAUDE.md; meta-architec
 | `vhdl2008_grammar_test/test_plan/VHDL2008_Grammar_Semantic_Test_Plan.md` | Master test plan |
 | `vhdl2008_grammar_test/reports/coverage_summary.md` | Coverage report (auto-generated) |
 | `vhdl2008_grammar_test/reports/ghdl_failures.csv` + `ghdl_test_results.md` + `ghdl_allowlist.csv` | GHDL gate artifacts |
+| `vhdl2008_grammar_test/reports/sync_manifest.json` | Generated-artifact policy registry (direct vs script-then-generate) + accepted style fingerprints — written only by the `--quick --accept-style-change` ritual |
 | `vhdl2008_grammar_test/reports/index.html` | Reports portal — open offline |
-| `presentation/` | Work-report page (index.html + assets/) — auto-rebuilt by sync, verified by snapshot; LAN access via `serve_project.py` at `http://<IP>:8090/` |
+| `presentation/` | Work-report page (index.html + assets/) — auto-rebuilt by sync (component cards rendered from `architecture_mindmap.md` via `extract_arch_spec()`), verified by snapshot + arch spec; LAN access via `serve_project.py` at `http://<IP>:8090/` |
 | `.claude/settings.json` + `.claude/hooks/` | Harness enforcement layer (permissions + Iron Rule 1/5 hooks) |
 | `.claude/sync_pending.log` | Machine record of unsettled cases_src edits — auto-cleared when verify passes |
 
@@ -80,11 +83,11 @@ Boundaries: project-architect never edits `.claude/` or CLAUDE.md; meta-architec
 
 | Script | Purpose |
 |---|---|
-| `sync_all.py` | **Primary** — sync all docs + tracker + report rendering + verify. `--verify-only` is the machine gate: exit 0 = consistent, exit 1 = issues |
+| `sync_all.py` | **Primary** — sync all docs + tracker + report rendering + verify. `--verify-only` is the machine gate: exit 0 = consistent, exit 1 = issues. `--quick --accept-style-change` = the explicit style-change ritual (only writer of the sync_manifest.json refs) |
 | `build_test_trace.py` | Regenerate Appendix E traceability matrix |
 | `run_ghdl_suite.py` | Run the suite through GHDL (public analyzer) — SYN/SEM must pass, SNN/SMN must be rejected — **invoke via `/ghdl-verify`** |
 | `generate_arch_pdf.py` | Report renderer — mindmap PDF + self-contained architecture HTML + `reports/index.html` portal (auto-called by sync) |
-| `build_presentation.py` | Work-report presentation builder — dynamic data injection + PRESENTATION_SNAPSHOT marker (auto-called by sync; verified by `verify_presentation()`) |
+| `build_presentation.py` | Work-report presentation builder — dynamic data injection + PRESENTATION_SNAPSHOT marker + `{{ARCH_SPEC}}` injected from `extract_arch_spec()` over `architecture_mindmap.md` §2.2–§2.5 (auto-called by sync; verified by `verify_presentation()` + `verify_arch_spec()`) |
 | `serve_project.py` | LAN web access (manual start, port 8090) — `/` fronts the presentation, `/browse/` browses/downloads any project file |
 | `project_facts.py` | Single facts authority — compute_facts() + CLAIM_REGISTRY feed every factual claim in docs/templates; verified by verify_fact_claims() (step 7k) |
 

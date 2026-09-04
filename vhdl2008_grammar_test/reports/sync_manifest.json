@@ -1,0 +1,99 @@
+{
+  "artifacts": [
+    {
+      "path": "test_plan/VHDL2008_Grammar_Semantic_Test_Plan.md",
+      "generator": "sync_all.py",
+      "policy": "direct"
+    },
+    {
+      "path": "test_plan/Appendix_E_Traceability_Matrix.md",
+      "generator": "build_test_trace.py",
+      "policy": "direct"
+    },
+    {
+      "path": "reports/coverage_summary.md",
+      "generator": "sync_all.py",
+      "policy": "direct"
+    },
+    {
+      "path": "PRODUCTION_TRACKER.md",
+      "generator": "sync_all.py",
+      "policy": "direct"
+    },
+    {
+      "path": "reports/ghdl_test_results.md",
+      "generator": "run_ghdl_suite.py",
+      "policy": "direct"
+    },
+    {
+      "path": "reports/ghdl_failures.csv",
+      "generator": "run_ghdl_suite.py",
+      "policy": "direct"
+    },
+    {
+      "path": "reports/ghdl_allowlist.csv",
+      "generator": "run_ghdl_suite.py",
+      "policy": "direct"
+    },
+    {
+      "path": "reports/ghdl_warn_reject.csv",
+      "generator": "run_ghdl_suite.py",
+      "policy": "direct"
+    },
+    {
+      "path": "test_plan/VHDL2008_Test_Plan_latest.html",
+      "generator": "generate_arch_pdf.py",
+      "policy": "direct"
+    },
+    {
+      "path": "test_plan/VHDL2008_Test_Plan_latest.docx",
+      "generator": "sync_all.py",
+      "policy": "direct"
+    },
+    {
+      "path": "presentation/index.html",
+      "generator": "build_presentation.py",
+      "policy": "script-then-generate",
+      "style_refs": {
+        "skeleton": "8352d41ad5adf3c69ddc0a84ca3dba9b9ce96b2b0a674a331362f6dabce1d2b2",
+        "css": "54bb440848128ba00539be7555095a887d20b64b7483957697d43f80df4cfabc",
+        "js": "a038d045e8f386ec65f68cfd8a8d65c851777cb32fc33aa98cdfb05829ab3e29"
+      }
+    },
+    {
+      "path": "reports/architecture_mindmap.html",
+      "generator": "generate_arch_pdf.py",
+      "policy": "script-then-generate",
+      "style_refs": {
+        "skeleton": "20cc02258c462ca9c86ac3e77b274f902d93a0bf0db026a721e2c4adc92a1189",
+        "css": "ca408db534537cef93dd62c13216c799fc3955f9e49505f088c11a16ba819a5a"
+      }
+    },
+    {
+      "path": "reports/index.html",
+      "generator": "generate_arch_pdf.py",
+      "policy": "script-then-generate",
+      "style_refs": {
+        "skeleton": "5824ff0be056e2e0ce8650ecb47da985504fdd6c85c6ace6ffa3f5f18a16cf48",
+        "css": "d42fd793f507a5b0cc79de7821a5e59d49b402dcc929be44effb3a1ea3f3a5d0"
+      }
+    },
+    {
+      "path": "reports/architecture_mindmap.pdf",
+      "generator": "generate_arch_pdf.py",
+      "policy": "script-then-generate",
+      "style_refs": {
+        "pdf_size": 92774,
+        "note": "PDF: existence + size-window check (0.5x\u20132x of accepted size) \u2014 no skeleton possible"
+      }
+    }
+  ],
+  "generators": {
+    "build_presentation.py": {
+      "template_skeleton": "5c3c714ee852c936f10c741b824896199bd8bd3d2bc352c2ff3987c4221e050d"
+    },
+    "generate_arch_pdf.py": {
+      "template_skeleton": "d89e1330423ada46abd116bcf20aa617fddcf3e3236394b084a3686877e397d3"
+    }
+  }
+}

@@ -19,6 +19,7 @@ mindmap
         3. Quality is verified /quality-audit
         4. Methodology lives in skills
         5. External verification gate /ghdl-verify
+        6. Facts come from one source
     Skills
       vhdl-test-generator__fable__
         12 Iron Rules
@@ -139,7 +140,7 @@ mindmap
 |---|---|
 | **Path** | `CLAUDE.md` |
 | **Role** | Top-level instruction file for the main agent |
-| **Contents** | Iron Rules (6 iron rules, each annotated with its enforcement mechanism — incl. Iron Rule 6: facts come from one source), Harness Enforcement Layer (settings.json + 3 hooks + sync_pending.log), Memory Policy, Skill list (4), key-path quick reference, script quick reference |
+| **Contents** | Iron Rules (6 iron rules, each annotated with its enforcement mechanism — incl. Iron Rule 6: facts come from one source + generated-artifact governance), Harness Enforcement Layer (settings.json + 3 hooks + sync_pending.log), Memory Policy, Skill list (4), key-path quick reference, script quick reference |
 | **Design principle** | Lean orchestration — tells the main agent only **when to invoke which skill**, never duplicates the methodology inside the skills |
 
 **Why it exists**: CLAUDE.md is the first file an AI agent reads when entering the project. It defines "who does what, when, and what counts as done". All detailed methodology lives in the skill files; CLAUDE.md only orchestrates.
@@ -148,7 +149,7 @@ mindmap
 - Points to → 4 Skills (`/vhdl-test-generator`, `/doc-sync`, `/quality-audit`, `/ghdl-verify`)
 - Points to → 4 Agents (`sync-agent`, `quality-agent`, `project-architect`, `meta-architect`)
 - Points to → 7 root scripts (script quick-reference table — details in §2.4)
-- Points to → facts authority `project_facts.py` (Iron Rule 6: every factual claim derives from compute_facts()/CLAIM_REGISTRY; verified by `verify_fact_claims()` step 7k)
+- Points to → facts authority `project_facts.py` (Iron Rule 6: every factual claim derives from compute_facts()/CLAIM_REGISTRY; verified by `verify_fact_claims()` step 7k; its extract_arch_spec() parses this mindmap's §2.2–§2.5 into the presentation drill-down spec — component descriptions are never hand-written in the generator, verify_arch_spec step 7l)
 - Does not contain → the full text of the 12 Iron Rules (they live in the `vhdl-test-generator` skill — the single definition site)
 
 **Harness Enforcement Layer**: `.claude/settings.json` + `.claude/hooks/` upgrades Iron Rules 1/5 from model discipline to machine records + machine reminders (Iron Rule 6 is machine-enforced by `verify_fact_claims()`, step 7k — facts/claims gate). The PostToolUse hook (log_case_edit.py) records every cases_src edit into `.claude/sync_pending.log`; the SessionStart hook (session_verify.py) runs `sync_all.py --verify-only` (exit code 1 = unfinished work, HARNESS GATE context injected; 0 issues = previous edits settled, log auto-cleared); the Stop hook (check_pending.py) reminds about unsettled records. permissions principle: allow contains only side-effect-free commands (write-class commands require confirmation = the gate ritual). The authoritative source for rendered artifacts (reports/architecture_mindmap.html, reports/index.html) is architecture_mindmap.md and the sync pipeline; they are regenerated only by `sync_all.py` / `generate_arch_pdf.py`, and agents never hand-edit them (guaranteed by convention + the verify gate; deny rules are no longer used — in practice deny also blocked the sync subprocess commands that write these paths).
@@ -159,7 +160,7 @@ mindmap
 
 ### 2.2 Skills
 
-Skills are **reusable methodology packages**. Each skill is a standalone markdown file with frontmatter metadata and detailed operating instructions. Skills are invoked by the main agent via `/skill-name`.
+Skills are **reusable methodology packages**. Each skill is a standalone markdown file with frontmatter metadata and detailed operating instructions. Skills are invoked by the main agent via `/skill-name`. This section is the single source of truth for the work-report presentation: extract_arch_spec() parses §2.2–§2.5 (the numbered component headings and two-column Property tables are the parser contract) and the drill-down chart renders from that spec — component cards are never hand-written in build_presentation.py.
 
 #### 2.2.1 vhdl-test-generator
 
@@ -245,7 +246,7 @@ Skills are **reusable methodology packages**. Each skill is a standalone markdow
 
 ### 2.3 Agents
 
-Agents are **independently executed subprocesses** with a clear single responsibility, a limited toolset, and a specific model. Unlike skills, agents have their own context window, can run in parallel, and never pollute the main agent's context.
+Agents are **independently executed subprocesses** with a clear single responsibility, a limited toolset, and a specific model. Unlike skills, agents have their own context window, can run in parallel, and never pollute the main agent's context. Like the other component sections, these descriptions are the single source for the presentation drill-down (parsed by extract_arch_spec(); the heading and table shape is the parser contract — a structural change here needs parser coordination with project-architect, verify_arch_spec() is the safety net).
 
 #### 2.3.1 sync-agent
 
@@ -326,7 +327,7 @@ Agents are **independently executed subprocesses** with a clear single responsib
 | Property | Value |
 |---|---|
 | **Path** | `sync_all.py` |
-| **Entry point** | `python3 sync_all.py [--quick\|--full\|--verify-only]` |
+| **Entry point** | `python3 sync_all.py [--quick [--accept-style-change]\|--full\|--verify-only]` |
 | **Purpose** | The single sync entry point for the whole document system + report rendering |
 
 **Core Functions and Responsibilities**:
@@ -340,8 +341,11 @@ Agents are **independently executed subprocesses** with a clear single responsib
 | `update_tracker()` | Auto-updates the Files column and Summary table of `PRODUCTION_TRACKER.md` | Auto-written |
 | `verify_ghdl_gate()` | GHDL gate: `ghdl_failures.csv` has data rows → reports `GHDL GATE:` issues; **freshness: `ghdl_run_manifest.json` `total_files_at_run` ≠ current file count → reports stale results (manifest written only by full runs, not partial runs; if missing, prompts to rerun `/ghdl-verify`)** | Read-only check |
 | `verify_debt_chapter()` | Validates the hand-maintained §8.5 debt chapter (heading present, §8-§9 safe zone, table rows/columns complete, no verify-trap text) | Read-only check |
-| `verify_all()` | Cross-verification: Section 9 ↔ filesystem ↔ Tracker ↔ Coverage Report ↔ Appendix E ↔ architecture mindmap ↔ GHDL gate | Read-only check |
+| `verify_all()` | Cross-verification: Section 9 ↔ filesystem ↔ Tracker ↔ Coverage Report ↔ Appendix E ↔ architecture mindmap ↔ GHDL gate ↔ arch spec ↔ style refs | Read-only check |
 | `verify_fact_claims()` | Claim gate (7k): registry patterns in rendered docs must equal `project_facts.py` facts; generator sources must be literal-free; backticked path claims must exist on disk | Read-only check |
+| `verify_arch_spec()` | Arch-spec gate (7l): `extract_arch_spec()` must yield the live skill/agent/script/doc counts from §2.2–§2.5 and every component name must appear in presentation/index.html; zero extracted components = parser-drift FAIL | Read-only check |
+| `verify_manifest()` | ARTIFACT_MANIFEST gate (7m): `reports/sync_manifest.json` must parse; its generator field must name a living root script; every script-then-generate artifact must exist | Read-only check |
+| `verify_style_stability()` | STYLE REFERENCE gate (7m): style fingerprints (skeleton/css/js + generator template skeletons) recomputed from disk must equal the accepted manifest refs — drift accepted only via `--quick --accept-style-change` (the manifest's only writer) | Read-only check |
 | `check_header_quality()` | Scans all VHD headers for Test Focus quality (missing/too short/contains pipe characters/English-only) | Pre-generation check |
 | `validate_section9()` | Validates structural completeness of the generated §9 markdown (column alignment, no empty cells) | Pre-write validation |
 | `render_test_table()` | Unified markdown table renderer (built-in column-count validation and automatic pipe-character replacement) | DRY principle |
@@ -350,7 +354,7 @@ Agents are **independently executed subprocesses** with a clear single responsib
 
 | Mode | Refresh Scope | Time | Use Case |
 |---|---|---|---|
-| `--quick` | §3.1, §5.3, §6, §9, Coverage, Tracker, Log, mindmap timestamp, **architecture PDF + self-contained HTML + portal page**, Test Plan HTML | ~1-3 min | **Daily — after every file change** |
+| `--quick` | §3.1, §5.3, §6, §9, Coverage, Tracker, Log, mindmap timestamp, **architecture PDF + self-contained HTML + portal page**, Test Plan HTML; `--accept-style-change` adds the style-ref acceptance into `sync_manifest.json` | ~1-3 min | **Daily — after every file change** |
 | `--full` | quick + Appendix E + DOCX | ~2-4 min | Phase completion, version release |
 | `--verify-only` | Check only, no writes (including the GHDL gate), reports all inconsistencies | ~8s | **The definition of "done"** |
 
@@ -411,9 +415,9 @@ Agents are **independently executed subprocesses** with a clear single responsib
 | **Purpose** | Generates the single-page work report `presentation/index.html` (fully self-contained: inline CSS + mmdc-rendered inline SVG + vanilla JS, 0 CDN, viewable offline) |
 | **Invocation** | **Auto-invoked by `sync_all.py --quick`** (after generate_arch_pdf; node env reused; on failure warns and continues — verify catches it as backstop) |
 
-**Dynamic data (single source of truth)**: all dynamic numbers are injected live at generation time — file/folder/chapter counts, type distribution, SYN_S specific test coverage, English-only Test Focus count, GHDL matrix/chapter tables/Notes/date (parsed from `ghdl_test_results.md`); the mindmap and data-flow SVGs are extracted live from `architecture_mindmap.md` (architecture changes reflected automatically). Historical narrative (phase history/milestones/methodology) is hand-written content.
+**Dynamic data (single source of truth)**: all dynamic numbers are injected live at generation time — file/folder/chapter counts, type distribution, SYN_S specific test coverage, English-only Test Focus count, GHDL matrix/chapter tables/Notes/date (parsed from `ghdl_test_results.md`); the layered drill-down chart is rendered generically from the architecture spec JSON (`extract_arch_spec()` over this mindmap's §2.2–§2.5 — component names, models, one-liners and detail tables; no hand-maintained data copy lives in the template); the §8.5 debt table mirrors the test plan's Active Items; the mindmap and data-flow SVGs are extracted live from `architecture_mindmap.md` (architecture changes reflected automatically). Historical narrative (phase history/milestones/methodology) is hand-written content.
 
-**Snapshot gate**: at generation time a `PRESENTATION_SNAPSHOT` marker is embedded (files/folders/skills/agents/scripts/ghdl_files); `verify_presentation()` (verify 7j) compares each item against disk + every on-disk skill/agent name must appear in the page (prevents the drill-down chart narrative from falling behind) — an architecture change or test-suite addition/removal without a sync rerun is caught immediately.
+**Snapshot gate**: at generation time a `PRESENTATION_SNAPSHOT` marker is embedded (files/folders/skills/agents/scripts/ghdl_files); `verify_presentation()` (verify 7j) compares each item against disk + every on-disk skill/agent/script name and every extracted doc name must appear in the page (prevents the drill-down spec from falling behind) — an architecture change or test-suite addition/removal without a sync rerun is caught immediately. Style stability: `verify_style_stability()` (7m) checks the emitted skeleton/css/js fingerprints against the accepted refs in `reports/sync_manifest.json`; structural changes to the page are accepted deliberately via `sync_all.py --quick --accept-style-change`.
 
 **Interactions**: layered drill-down architecture chart (click card to expand → click member for the detail panel), SVG viewer (smart fit/6 buttons/pan clamping/whiteboard fullscreen), phase accordion.
 
@@ -434,8 +438,8 @@ Agents are **independently executed subprocesses** with a clear single responsib
 | Property | Value |
 |---|---|
 | **Path** | `project_facts.py` |
-| **Purpose** | Single source of truth for every factual claim in prose/templates. `compute_facts()` derives all facts from live sources (cases_src filesystem scan, reference CSV totals, tracker title production count, live .claude/ skill/agent/hook counts, living root scripts) — memoized per process, no side effects on import. `CLAIM_REGISTRY` declares the factual-claim patterns (with exempt zones and a priority resolver: each claim is matched by exactly one rule). |
-| **Invocation** | Imported by `sync_all.py` (verify step 7k) and `build_presentation.py` (placeholder injection); never run standalone |
+| **Purpose** | Single source of truth for every factual claim in prose/templates. `compute_facts()` derives all facts from live sources (cases_src filesystem scan, reference CSV totals incl. new-2008/P0/P1 priorities + semantic categories, tracker title production count, live .claude/ skill/agent/hook counts, living root scripts, §2.5 document kinds, CLAUDE.md + skill Iron Rules counts) — memoized per process, no side effects on import. `extract_arch_spec()` parses this mindmap's §2.2–§2.5 into the architecture spec JSON the presentation drill-down renders from. `CLAIM_REGISTRY` declares the factual-claim patterns (with exempt zones, ANY rules and a priority resolver: each claim is matched by exactly one rule). |
+| **Invocation** | Imported by `sync_all.py` (verify steps 7k/7l) and `build_presentation.py` (spec + placeholder injection); never run standalone |
 | **Gate** | `verify_fact_claims()` (verify 7k) is two-sided: output claims must equal the facts (presentation / mindmap / README / coverage / tracker / test plan, exempt zones removed) and generator sources must be literal-free (any digit-bearing registry match in build_presentation.py / generate_arch_pdf.py / build_test_trace.py is a hardcoded fact — placeholders contain no digits, so a source match IS a literal); backticked repo-relative path claims in README + mindmap must exist on disk |
 
 #### 2.4.8 legacy_scripts/ — One-Off Script Archive
@@ -466,6 +470,7 @@ All documents are auto-maintained by `sync_all.py` — **never hand-edit documen
 | **Reports Portal** | `reports/index.html` | Regenerated on every sync | Entry page to all reports |
 | **GHDL Reports** | `reports/ghdl_test_results.md` + `ghdl_failures.csv` + `ghdl_allowlist.csv` | Generated by the `/ghdl-verify` flow; `verify` gates on the failures CSV | External verification results and the tool-gap list |
 | **Presentation** | `presentation/index.html` + `assets/` (5 attachment copies) | **Rebuilt by `build_presentation.py` on every sync** (dynamic data injection + snapshot marker); `verify_presentation()` checks the snapshot against disk | Single-page work report (drill-down architecture chart / viewer / phase history / live data tables), accessed over LAN via `serve_project.py` |
+| **Style / Manifest Registry** | `reports/sync_manifest.json` | Written by the `--accept-style-change` ritual (style-change acceptance); checked read-only by `verify_manifest()` + `verify_style_stability()` | Generated-artifact policy registry (direct / script-then-generate) + style fingerprints (skeleton / css / js / generator template) |
 
 ---
 
@@ -528,13 +533,13 @@ flowchart LR
 | Harness Hooks | 3 | session_verify (SessionStart), log_case_edit (PostToolUse), check_pending (Stop) — plus `.claude/sync_pending.log` machine record |
 | Iron Rules | 6 | Sync-Mandatory, Batch-Track, Quality-Verified, Method-In-Skills, External-Verification-Gate, Facts-One-Source |
 | Scripts | 7 | `sync_all.py`, `build_test_trace.py`, `generate_arch_pdf.py`, `run_ghdl_suite.py`, `build_presentation.py`, `serve_project.py`, `project_facts.py` |
-| Auto-maintained Docs | 12 | Test Plan, Coverage Report, Tracker, Appendix E, Generation Log, Architecture Mindmap .md, Architecture PDF, Architecture self-contained HTML, Test Plan HTML, Reports Portal `index.html`, GHDL reports (results/failures/allowlist), Presentation (`presentation/index.html` + assets/) |
+| Auto-maintained Docs | 13 | Test Plan, Coverage Report, Tracker, Appendix E, Generation Log, Architecture Mindmap .md, Architecture PDF, Architecture self-contained HTML, Test Plan HTML, Reports Portal `index.html`, GHDL reports (results/failures/allowlist), Presentation (`presentation/index.html` + assets/), Style / Manifest Registry (`sync_manifest.json`) |
 
 ---
 
 ## 5. Design Principles
 
-1. **Single source of truth**: each concept (12 Iron Rules, sync protocol, quality-audit criteria, GHDL verification protocol) is defined exactly once, in its skill file. CLAUDE.md never duplicates.
+1. **Single source of truth**: each concept (12 Iron Rules, sync protocol, quality-audit criteria, GHDL verification protocol) is defined exactly once, in its skill file. CLAUDE.md never duplicates. Component descriptions (skills/agents/scripts/docs) are likewise defined once — in this mindmap §2.2–§2.5 — and rendered into the presentation by extract_arch_spec(); hand-writing them in the generator is a verify failure (7l).
 2. **Separation of concerns**: generation (fable), sync (haiku), audit (haiku), and external verification (fable) are independent. No agent does two jobs at once.
 3. **Mandatory gating**: `verify-only` returning 0 = the only definition of done. Enforced by script, not memory.
 4. **Full regeneration over patching**: documents that can be fully generated (Coverage Report, Section 6, Section 9) are never patched line by line. Patch mode is the root cause of silent staleness.

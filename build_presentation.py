@@ -7,9 +7,12 @@ output — inline CSS + inline SVG (mmdc-rendered mermaid) + inline vanilla JS
 scrollspy). No CDN.
 
 All dynamic numbers are injected from live scans (cases_src walk, GHDL result
-parse, .claude/ dir scan); historical narrative stays hand-maintained. A
-`PRESENTATION_SNAPSHOT` marker is embedded for sync_all.py's
-verify_presentation() freshness gate.
+parse, .claude/ dir scan); the layered drill-down chart renders generically
+from the architecture spec JSON ({{ARCH_SPEC}} = project_facts.
+extract_arch_spec() over architecture_mindmap.md §2.2–§2.5 — the single
+source of truth); the §8.5 debt table mirrors the test plan's Active Items;
+historical narrative stays hand-maintained. A `PRESENTATION_SNAPSHOT` marker
+is embedded for sync_all.py's verify_presentation() freshness gate.
 
 Usage: python3 build_presentation.py
 """
@@ -17,6 +20,9 @@ Usage: python3 build_presentation.py
 import os
 import re
 import sys
+import csv
+import json
+import html as html_mod
 import shutil
 import tempfile
 import subprocess
@@ -31,6 +37,10 @@ PRES_DIR = os.path.join(ROOT, 'presentation')
 MINDMAP_MD = os.path.join(ROOT, 'vhdl2008_grammar_test', 'reports', 'architecture_mindmap.md')
 CASES_SRC = os.path.join(ROOT, 'vhdl2008_grammar_test', 'test_case_db', 'cases_src')
 GHDL_RESULTS = os.path.join(ROOT, 'vhdl2008_grammar_test', 'reports', 'ghdl_test_results.md')
+TEST_PLAN = os.path.join(ROOT, 'vhdl2008_grammar_test', 'test_plan',
+                         'VHDL2008_Grammar_Semantic_Test_Plan.md')
+GHDL_ALLOWLIST = os.path.join(ROOT, 'vhdl2008_grammar_test', 'reports',
+                              'ghdl_allowlist.csv')
 SKILLS_DIR = os.path.join(ROOT, '.claude', 'skills')
 AGENTS_DIR = os.path.join(ROOT, '.claude', 'agents')
 LEGACY_DIR = os.path.join(ROOT, 'legacy_scripts')
@@ -247,6 +257,50 @@ def live_root_scripts():
     return sorted(f for f in os.listdir(ROOT) if f.endswith('.py'))
 
 
+def debt_rows():
+    """Parse the hand-maintained §8.5 Active Items table of the Test Plan and
+    render Category / Item / Status rows (Count/Scope, Owner and Destination
+    columns dropped). The debt chapter keeps its internal numbers — it is
+    hand-maintained prose with its own verify gate (verify_debt_chapter)."""
+    if not os.path.exists(TEST_PLAN):
+        return '<tr><td colspan="3">(test plan not found)</td></tr>'
+    with open(TEST_PLAN, 'r', encoding='utf-8', errors='replace') as f:
+        text = f.read()
+    m = re.search(r'### Active Items\s*(.*?)\s*### Migration Log', text, re.DOTALL)
+    if not m:
+        return '<tr><td colspan="3">(unable to parse §8.5 Active Items — '
+        'run sync_all.py --quick)</td></tr>'
+    rows = []
+    for line in m.group(1).splitlines():
+        line = line.strip()
+        if not line.startswith('|'):
+            continue
+        cells = [c.strip() for c in line.strip('|').split('|')]
+        if len(cells) < 6:
+            continue  # header / separator rows
+        cat, item, status = cells[0], cells[1], cells[4]
+        if cat.lower() == 'category' or all(
+                set(c) <= set('-: ') for c in cells):
+            continue
+        rows.append(f'        <tr><td>{html_mod.escape(cat)}</td>'
+                    f'<td>{html_mod.escape(item)}</td>'
+                    f'<td>{html_mod.escape(status)}</td></tr>')
+    if not rows:
+        return '<tr><td colspan="3">(no active items)</td></tr>'
+    return '\n'.join(rows)
+
+
+def allowlist_rows():
+    """Live count of ghdl_allowlist.csv data rows (the gap catalog size)."""
+    if not os.path.exists(GHDL_ALLOWLIST):
+        return 0
+    try:
+        with open(GHDL_ALLOWLIST, 'r', encoding='utf-8-sig') as f:
+            return max(0, len(list(csv.DictReader(f))))
+    except Exception:
+        return 0
+
+
 TIMELINE_MMD = """timeline
   title Iteration and Evolution Timeline 2026-07-23 to 2026-08-20
   Phase 1 Batch Generation Kickoff : 07-23 : 1,347 files : templating problems exposed
@@ -419,7 +473,7 @@ TEMPLATE = r'''<!DOCTYPE html>
   <h2><span class="no">01</span>Key Result Numbers</h2>
   <div class="cards">
     <div class="card"><div class="num">{{TOTAL_FILES}}</div><div class="lbl">test files ({{N_CHAPTERS}} chapters / {{TOTAL_FOLDERS}} folders)</div></div>
-    <div class="card"><div class="num">{{IN_SCOPE_BNF}}+139</div><div class="lbl">BNF productions + semantic rules, 100% coverage</div></div>
+    <div class="card"><div class="num">{{IN_SCOPE_BNF}}+{{SEM_TOTAL}}</div><div class="lbl">BNF productions + semantic rules, 100% coverage</div></div>
     <div class="card"><div class="num">0</div><div class="lbl">GHDL full-run failures ({{GHDL_FILES}} testable files)</div></div>
     <div class="card"><div class="num">{{SPEC_PCT}}%</div><div class="lbl">production-specific test coverage ({{SPEC_FOLDERS}}/{{TOTAL_FOLDERS}} folders, {{SPEC_FILES}} SYN_S)</div></div>
     <div class="card"><div class="num">{{N_SKILLS}}+{{N_AGENTS}}+{{N_SCRIPTS}}</div><div class="lbl">Skills + Agents + root scripts</div></div>
@@ -429,31 +483,31 @@ TEMPLATE = r'''<!DOCTYPE html>
       <h3>Files by chapter (live count at build time)</h3>
       <table>
         <tr><th>Chapter</th><th>Production folders</th><th>Files</th></tr>
-        {{CHAPTERS}}
+        <!--INJ:CHAPTERS-->{{CHAPTERS}}<!--/INJ:CHAPTERS-->
       </table>
     </div>
     <div>
       <h3>GHDL verification matrix ({{GHDL_DATE}} full run)</h3>
       <table>
         <tr><th>Verification type</th><th>PASS</th><th>FAIL</th></tr>
-        {{GHDL_MATRIX_ROWS}}
+        <!--INJ:GHDL_MATRIX_ROWS-->{{GHDL_MATRIX_ROWS}}<!--/INJ:GHDL_MATRIX_ROWS-->
       </table>
-      <p style="font-size:.82em;color:var(--muted)">{{GHDL_NOTES}}</p>
+      <p style="font-size:.82em;color:var(--muted)"><!--INJ:GHDL_NOTES-->{{GHDL_NOTES}}<!--/INJ:GHDL_NOTES--></p>
     </div>
   </div>
   <h3>GHDL verification by chapter (all green)</h3>
   <table>
     <tr><th>Chapter</th><th>PASS</th><th>FAIL</th></tr>
-    {{GHDL_CHAPTERS}}
+    <!--INJ:GHDL_CHAPTERS-->{{GHDL_CHAPTERS}}<!--/INJ:GHDL_CHAPTERS-->
   </table>
   <h3>Quality metrics</h3>
   <table>
     <tr><th>Metric</th><th>Value</th></tr>
-    <tr><td>File type distribution (filename markers)</td><td>{{TYPE_COUNTS}}</td></tr>
-    <tr><td>Files with rich custom type declarations</td><td>~92%</td></tr>
-    <tr><td>Complete compilable units (entity+architecture or pkg+body)</td><td>100%</td></tr>
-    <tr><td>Semantic-rule error injection across five categories</td><td>type_mismatch 53 / declaration_elaboration_error 34 / scope_visibility_error 30 / interface_violation 16 / assignment_driver_violation 6</td></tr>
-    <tr><td>VHDL 2008 new features</td><td>36 new BNF productions + 11 P0 semantic rules, 100% covered</td></tr>
+    <tr><td>File type distribution (filename markers)</td><td><!--INJ:TYPE_COUNTS-->{{TYPE_COUNTS}}<!--/INJ:TYPE_COUNTS--></td></tr>
+    <tr><td>Files with rich custom type declarations</td><td>spot-checked per chapter (quality-audit dimension 3)</td></tr>
+    <tr><td>Complete compilable units (entity+architecture or pkg+body)</td><td>all files pass the GHDL full run (0 failures)</td></tr>
+    <tr><td>Semantic-rule error injection across five categories</td><td>{{SEM_CATEGORIES}}</td></tr>
+    <tr><td>VHDL 2008 new features</td><td>{{BNF_NEW}} new BNF productions + {{SEM_P0}} P0 semantic rules, 100% covered</td></tr>
   </table>
 </section>
 
@@ -474,11 +528,11 @@ TEMPLATE = r'''<!DOCTYPE html>
     <div>
       <h3>Layer responsibility table</h3>
       <table>
-        <tr class="anchor-row" id="row-claude"><th>Orchestration</th><td>CLAUDE.md (5 Iron Rules)</td><td>Tells the main agent when to call which skill / dispatch which agent; all methodology pushed down</td></tr>
-        <tr class="anchor-row" id="row-skills"><th>Skills</th><td>vhdl-test-generator (fable) · doc-sync (haiku) · quality-audit (haiku) · ghdl-verify (fable)</td><td>Four protocols: generate / sync / audit / external verification</td></tr>
-        <tr class="anchor-row" id="row-agents"><th>Agents</th><td>sync-agent · quality-agent (haiku); project-architect · meta-architect (fable)</td><td>Doc sync, quality audit, project architecture upgrades, agent-system optimization — each owns a unique territory, none crosses boundaries</td></tr>
-        <tr class="anchor-row" id="row-scripts"><th>Scripts</th><td>sync_all.py · build_test_trace.py · generate_arch_pdf.py · run_ghdl_suite.py</td><td>Unified sync + verify gate, traceability matrix, report rendering (PDF/HTML/portal), GHDL verifier</td></tr>
-        <tr class="anchor-row" id="row-docs"><th>Documents</th><td>Test plan (incl. §8.5 debt chapter) · coverage · tracker · Appendix E · architecture PDF/HTML · portal · GHDL report</td><td>11 document/dataset kinds, fully generated or verify-checked</td></tr>
+        <tr class="anchor-row" id="row-claude"><th>Orchestration</th><td>CLAUDE.md ({{IRON_RULES}} Iron Rules)</td><td>Tells the main agent when to call which skill / dispatch which agent; all methodology pushed down</td></tr>
+        <tr class="anchor-row" id="row-skills"><th>Skills</th><td>{{SKILL_NAMES}}</td><td>Four protocols: generate / sync / audit / external verification</td></tr>
+        <tr class="anchor-row" id="row-agents"><th>Agents</th><td>{{AGENT_NAMES}}</td><td>Doc sync, quality audit, project architecture upgrades, agent-system optimization — each owns a unique territory, none crosses boundaries</td></tr>
+        <tr class="anchor-row" id="row-scripts"><th>Scripts</th><td>{{SCRIPT_NAMES}}</td><td>Unified sync + verify gate, traceability matrix, report rendering (PDF/HTML/portal), GHDL verifier, facts authority</td></tr>
+        <tr class="anchor-row" id="row-docs"><th>Documents</th><td>{{DOC_NAMES}}</td><td>{{DOC_KINDS}} document kinds, fully generated or verify-checked</td></tr>
       </table>
     </div>
     <div>
@@ -660,17 +714,18 @@ TEMPLATE = r'''<!DOCTYPE html>
   <h2><span class="no">04</span>Methodology Accumulated</h2>
   <div class="bento">
     <div class="cell">
-      <h4>5 Iron Rules (non-negotiable)</h4>
+      <h4>{{IRON_RULES}} Iron Rules (non-negotiable)</h4>
       <ul style="margin:4px 0;padding-left:18px;font-size:.87em">
         <li><b>Sync is mandatory</b>: after any cases_src change /doc-sync is required and the output must be 0 issues — never skipped</li>
         <li><b>Batch = track + complete</b>: read PRODUCTION_TRACKER before batch work, sync every ~5 productions</li>
         <li><b>Quality is verified</b>: must pass /quality-audit before reporting "done"</li>
-        <li><b>Methodology lives in skills</b>: CLAUDE.md only orchestrates; all 12 Iron Rules etc. are pushed down into skills</li>
+        <li><b>Methodology lives in skills</b>: CLAUDE.md only orchestrates; all {{SKILL_IRON_RULES}} Iron Rules etc. are pushed down into skills</li>
         <li><b>External verification is the quality gate</b>: GHDL 0 non-allowlist failures; gaps must be explicitly allowlisted with a reason</li>
+        <li><b>Facts come from one source</b>: every factual claim derives from project_facts.py compute_facts() / CLAIM_REGISTRY — hardcoded fact literals in generator sources are verify failures (step 7k)</li>
       </ul>
     </div>
     <div class="cell">
-      <h4>12 Iron Rules (content quality)</h4>
+      <h4>{{SKILL_IRON_RULES}} Iron Rules (content quality)</h4>
       <ul style="margin:4px 0;padding-left:18px;font-size:.87em">
         <li><b>9 content rules</b>: one file one test point / the body exercises the production's real syntax / meaningful entity names / multi-variant ports / zero dead code / SNN errors must come from a specific BNF token / SNN parseable up to the error point / SYN_001 minimal → SYN_00N progressively thorough / realistic hardware style</li>
         <li><b>3 traceability rules</b>: Test Focus format [dimension]:[mechanism] / reports write HOW not WHAT / report ↔ header ↔ code three-layer consistency</li>
@@ -683,7 +738,7 @@ TEMPLATE = r'''<!DOCTYPE html>
         <tr><td>A file bug</td><td>VHDL violates the standard or contradicts the header</td><td>batch script / agent fix</td><td>~560</td></tr>
         <tr><td>B misclassified</td><td>header Case Type contradicts the filename</td><td>fix header / rename</td><td>~200</td></tr>
         <tr><td>C harness</td><td>judgment logic misjudges</td><td>fix run_ghdl_suite.py</td><td>~260</td></tr>
-        <tr><td>D tool gap</td><td>GHDL 6.0 lacks the new feature</td><td>allowlist with reason</td><td>~45 (154 lines final)</td></tr>
+        <tr><td>D tool gap</td><td>GHDL 6.0 lacks the new feature</td><td>allowlist with reason</td><td>~45 ({{ALLOWLIST_ROWS}} lines final)</td></tr>
       </table>
     </div>
     <div class="cell">
@@ -716,14 +771,10 @@ TEMPLATE = r'''<!DOCTYPE html>
 
 <section id="future">
   <h2><span class="no">06</span>Status &amp; Outlook</h2>
-  <p>All currently known debt is registered in the §8.5 debt chapter of the Test Plan (hand-maintained, deleted-when-done + migration log):</p>
+  <p>All currently known debt is registered in the §8.5 debt chapter of the Test Plan (hand-maintained, deleted-when-done + migration log); the table below mirrors its Active Items:</p>
   <table>
-    <tr><th>Item</th><th>Scale</th><th>Plan</th></tr>
-    <tr><td>Test Focus still in Chinese (style to be unified to English)</td><td>{{TF_CN}} / {{TOTAL_FILES}}</td><td>translate in batches</td></tr>
-    <tr><td>`-- BNF Production:` label not yet unified to `-- Related Rule ID:`</td><td>~439 files</td><td>batch script</td></tr>
-    <tr><td>2 REVIEW rows in the GHDL allowlist awaiting re-check</td><td>2 rows</td><td>/ghdl-verify re-check</td></tr>
-    <tr><td>Test Plan HTML depends on CDN mermaid (not renderable offline)</td><td>1 file</td><td>switch to self-contained SVG (same scheme already implemented in the architecture HTML)</td></tr>
-    <tr><td>~39 one-off legacy scripts in the root awaiting archiving</td><td>~39 scripts</td><td>move into archive/</td></tr>
+    <tr><th>Category</th><th>Item</th><th>Status</th></tr>
+    <!--INJ:DEBT_ROWS-->{{DEBT_ROWS}}<!--/INJ:DEBT_ROWS-->
   </table>
   <p>Outlook: the architect agent team (project-architect / meta-architect) keeps absorbing follow-up requirements and problems; the verify gate keeps sealing new blind spots.</p>
 </section>
@@ -732,7 +783,7 @@ TEMPLATE = r'''<!DOCTYPE html>
   <h2><span class="no">07</span>Attachments</h2>
   <p>The files below are all copied into the <code>assets/</code> subfolder of this folder; double-click to open:</p>
   <div class="att">
-    <a href="assets/architecture_mindmap.pdf">Architecture mindmap PDF<span>Full architecture reference (4 skills / 4 agents / root scripts / data flow / design principles), printable</span></a>
+    <a href="assets/architecture_mindmap.pdf">Architecture mindmap PDF<span>Full architecture reference ({{N_SKILLS}} skills / {{N_AGENTS}} agents / {{N_SCRIPTS}} root scripts / data flow / design principles), printable</span></a>
     <a href="assets/VHDL2008_Test_Plan_latest.html">Test Plan HTML<span>Full test plan (strategy / coverage / §9 per-production test points / appendices); mermaid diagrams need network</span></a>
     <a href="assets/coverage_summary.md">Coverage report<span>Complete stats by chapter/type/semantic rule/quality metric</span></a>
     <a href="assets/ghdl_test_results.md">GHDL test results<span>By-type/by-chapter matrix + WARN_REJECT / EXPECTED_FAIL notes</span></a>
@@ -900,136 +951,88 @@ function makeViewer(container) {
 }
 document.querySelectorAll('.viewer').forEach(makeViewer);
 
-/* ================= layered drill-down architecture diagram ================= */
-var ARCH_GROUPS = [
-  { id: 'claude', name: 'CLAUDE.md', color: '#7a5fb0', tag: 'orchestration center', one: '5 Iron Rules · dispatch decisions · all methodology pushed down', single: true,
-    detail: '<h5>5 Iron Rules (non-negotiable)</h5><ol>'
-      + '<li><b>Sync is mandatory</b>: after any cases_src change /doc-sync is required and the output must be 0 issues — never skipped, never deferred</li>'
-      + '<li><b>Batch = track + complete</b>: read PRODUCTION_TRACKER before batch work, process every target production, sync every ~5 productions</li>'
-      + '<li><b>Quality is verified</b>: must pass /quality-audit before reporting done; fix all violations</li>'
-      + '<li><b>Methodology lives in skills</b>: the 12 Iron Rules / 5-layer thinking / 6-step loop / error patterns / category tables are defined once in /vhdl-test-generator; CLAUDE.md does not repeat them</li>'
-      + '<li><b>External verification is the quality gate</b>: after any .vhd change /ghdl-verify (full or --chapter) to 0 non-allowlist failures; GHDL limitations must be explicitly allowlisted with a reason — never silently accepted</li>'
-      + '</ol><p><b>Design principle</b>: CLAUDE.md only orchestrates — telling the main agent when to call which skill and dispatch which agent; all detailed methodology is pushed down into skill files to avoid dual-source drift.</p>' },
-  { id: 'skills', name: 'Skills', color: '#2c6b9c', tag: 'methodology · {{N_SKILLS}} total', one: 'four protocols: generate / sync / audit / external verification', items: [
-    { name: 'vhdl-test-generator', tag: 'fable', one: 'generation protocol: 12 Iron Rules / 5-layer deep thinking / 6-step work loop',
-      detail: '<h5>5-layer deep thinking (pre-generation cognitive framework)</h5><ol>'
-        + '<li><b>Essence</b>: the role of this BNF production in VHDL, its minimal compilable form</li>'
-        + '<li><b>Variants</b>: legal variants per syntax slot, boundary cases, VHDL 2008 additions</li>'
-        + '<li><b>Types &amp; Usage</b>: types involved, enriching tests with custom types</li>'
-        + '<li><b>Error Modes</b>: possible errors per BNF token, associated semantic rules</li>'
-        + '<li><b>Test Dimension List</b>: synthesize the first four layers into a complete SYN/SNN/SEM/SMN list</li>'
-        + '</ol><h5>6-step work loop</h5><ol>'
-        + '<li>five-layer thinking → 2. write the test-dimension table → 3. handwrite VHD file by file → 4. three-layer consistency check → 5. 12-Iron-Rule audit → 6. /doc-sync refreshes docs</ol>'
-        + '<p><b>Why fable</b>: test generation needs deep domain knowledge (VHDL syntax and semantics, IEEE 1076-2008) and creative thinking; haiku cannot handle it.</p>' },
-    { name: 'doc-sync', tag: 'haiku', one: 'sync protocol: --quick → --verify-only → fix to 0 issues',
-      detail: '<h5>4-step protocol</h5><ol>'
-        + '<li><code>sync_all.py --quick</code>: Test Plan §3.1/§5.3/§6/§9, coverage, Section 9, Tracker, generation log, architecture PDF/HTML/portal</li>'
-        + '<li><code>--verify-only</code>: cross-validation; output must be "OK: … 0 issues found"</li>'
-        + '<li>issues found → analyze and fix (missing headers / pipes / wrong counts / GHDL GATE) → rerun</li>'
-        + '<li>report: file count, production count, doc-update list</li>'
-        + '</ol><p><b>Why haiku</b>: sync is mechanical command execution + verification and needs no creative thinking; haiku suffices and is more economical.</p>' },
-    { name: 'quality-audit', tag: 'haiku', one: 'audit protocol: five-dimension check (header/template/specificity/complexity/body quality)',
-      detail: '<h5>5 major check dimensions</h5><ul>'
-        + '<li><b>Header Quality</b>: Test Focus present, describes HOW, no ASCII |</li>'
-        + '<li><b>Template Bloat</b>: scan for t_uint8/t_state/bh template residue, lazy default port values</li>'
-        + '<li><b>SNN Error Specificity</b>: the error targets a specific BNF token, not a vague "syntax error"</li>'
-        + '<li><b>Progressive Complexity</b>: SYN_001 truly minimal, increasing in the middle</li>'
-        + '<li><b>VHDL Body Quality</b>: the code exercises this production's real syntax elements</li>'
-        + '</ul><p><b>Why it exists</b>: generator self-audit is unreliable (proven multiple times). Independent auditing provides an objective third-party check; files rejected by GHDL get their header classification re-checked first.</p>' },
-    { name: 'ghdl-verify', tag: 'fable', one: 'external verification: run the suite → four-way classification → fix/allowlist → 0 failures',
-      detail: '<h5>7-step protocol</h5><ol>'
-        + '<li>ensure GHDL is reachable (winget path + lib on PATH, --limit 1 smoke test)</li>'
-        + '<li>run the suite (full / --chapter chXX / --limit N)</li>'
-        + '<li>read ghdl_failures.csv (FAIL rows) + ghdl_test_results.md (matrix + Notes counts)</li>'
-        + '<li><b>four-way failure classification</b>: file bug / harness defect / GHDL limitation / metadata misclassification</li>'
-        + '<li>fix (prefer fixing files; the allowlist only accepts real tool gaps and requires a reason)</li>'
-        + '<li>rerun to 0 FAIL (WARN_REJECT / EXPECTED_FAIL allowed)</li>'
-        + '<li>/doc-sync to close out (verify 0 issues including the GHDL gate)</li>'
-        + '</ol><h5>GHDL 6.0 known-gap catalog (25 categories / 156 lines)</h5>'
-        + '<p style="font-size:.84em">vunit support missing 48 · force/release assignment 54 · record constraints and resolution 27 · matching operators ?= ?/= ?? 4 · generic subprogram instantiation 4 · pipe-separated selection 2 · scalar \'range 1, etc.</p>'
-        + '<p><b>Why fable</b>: telling "file bug" apart from "tool gap" requires judging the boundary between VHDL semantics and GHDL defects; haiku has repeatedly misjudged this.</p>' }
-  ]},
-  { id: 'agents', name: 'Agents', color: '#3f9d5e', tag: 'executors · {{N_AGENTS}} total', one: 'sync / audit / project architecture / meta-architecture, each with its own role', items: [
-    { name: 'sync-agent', tag: 'haiku', one: 'doc sync only; no VHD, no root scripts',
-      detail: '<p><b>Duties</b>: run --quick + --verify-only and report the results (incl. GHDL gate status, HTML/portal outputs).</p>'
-        + '<p><b>Constraints</b>: no .vhd edits (except fixing Test Focus headers); no edits to any root script or architect agent file; GHDL GATE issues are not self-fixed, instead reports "invoke /ghdl-verify".</p>'
-        + '<p><b>Why it exists</b>: the main agent focused on generation tends to forget the sync step — a dedicated agent, not memory, guarantees docs are updated after every change.</p>' },
-    { name: 'quality-agent', tag: 'haiku', one: 'quality audit only; reports, never modifies',
-      detail: '<p><b>Duties</b>: audit file by file against the five dimensions and output a violation list (file + rule number + description), with verdicts PASS / FIX N ISSUES / REGENERATE.</p>'
-        + '<p><b>Why it exists</b>: generator self-audit = judge and contestant in one person; an independent agent provides an objective assessment.</p>' },
-    { name: 'project-architect', tag: 'fable', one: 'project architect: problems/requirements → root scripts, pipeline, docs upgraded → verify 0',
-      detail: '<h5>Protocol</h5><ol>'
-        + '<li>read the mindmap + CLAUDE.md + related scripts</li><li>gap analysis</li><li>minimal upgrade design (honor the three principles)</li>'
-        + '<li>implementation (root scripts/pipeline/docs)</li><li>update the mindmap + §8.5 debt chapter (resolved items deleted → migration log)</li>'
-        + '<li>--quick + --verify-only to 0 issues</li></ol>'
-        + '<p><b>Boundaries</b>: never edits .claude/ or CLAUDE.md (meta-architect territory); stops and hands over to the main agent when a new skill/agent is needed.</p>'
-        + '<p><b>Definition of done</b>: --quick with 0 header errors and --verify-only reporting 0 issues.</p>' },
-    { name: 'meta-architect', tag: 'fable', one: 'meta-architect: optimizes the agent/skill system itself',
-      detail: '<h5>Territory</h5><p>.claude/skills/*, .claude/agents/*, CLAUDE.md, mindmap §2.1-2.3/§4 and the Agents branch; the known-name tuple of verify_architecture_diagram() (the one narrow exception).</p>'
-        + '<h5>Protocol</h5><ol><li>audit: overlapping duties / model fit (haiku=mechanical fable=reasoning) / stale references / protocol quality / gate coverage</li>'
-        + '<li>optimize directly</li><li>update the mindmap + verify expectations</li><li>verify-only 0 issues</li></ol>'
-        + '<p><b>Boundaries</b>: never touches root scripts (except the narrow exception), cases_src, or the Test Plan. May add an "Agent·Skill Architecture" category entry in §8.5.</p>' }
-  ]},
-  { id: 'scripts', name: 'Scripts', color: '#b5743a', tag: 'engine · {{N_SCRIPTS}} root scripts', one: 'sync engine / traceability matrix / report rendering / GHDL verification', items: [
-    { name: 'sync_all.py', tag: 'core', one: 'unified sync + verify gate (the consistency checks)',
-      detail: '<h5>Three modes</h5><table><tr><th>Mode</th><th>Refresh scope</th><th>When</th></tr>'
-        + '<tr><td>--quick</td><td>Test Plan §3.1/5.3/6/9 + coverage + Tracker + log + architecture PDF/HTML/portal</td><td>after every file change</td></tr>'
-        + '<tr><td>--full</td><td>quick + Appendix E + DOCX</td><td>phase end / version release</td></tr>'
-        + '<tr><td>--verify-only</td><td>read-only check of 10 consistency groups</td><td>the criterion for "done"</td></tr></table>'
-        + '<h5>Key verification functions</h5><p style="font-size:.84em">verify_all (§9/coverage/Tracker/totals/appendix/mindmap) · verify_fact_claims (Facts Authority claim gate) · verify_ghdl_gate (failure CSV must have 0 rows) · verify_debt_chapter (§8.5 heading/safe-zone/table structure) · verify_architecture_diagram (live scan of {{N_SKILLS}} skills/{{N_AGENTS}} agents/{{N_SCRIPTS}} scripts/3 tokens)</p>' },
-    { name: 'build_test_trace.py', tag: 'auxiliary', one: 'Appendix E traceability matrix (~12,000 lines / 328 chapter entries)',
-      detail: '<p>Auto-called by <code>sync_all.py --full</code>: a per-production test point → file mapping traceability matrix, extracted from the file headers\' Test Focus.</p>' },
-    { name: 'generate_arch_pdf.py', tag: 'rendering', one: 'report rendering: mindmap PDF / self-contained HTML / Test Plan HTML / portal',
-      detail: '<h5>Output list</h5><table><tr><th>Output</th><th>Method</th><th>Traits</th></tr>'
-        + '<tr><td>architecture_mindmap.pdf</td><td>mmdc → PyPDF2 merge</td><td>single PDF</td></tr>'
-        + '<tr><td>architecture_mindmap.html</td><td>pandoc + mermaid blocks replaced by mmdc inline SVG</td><td>fully self-contained, viewable offline; falls back to CDN with a warning on failure</td></tr>'
-        + '<tr><td>VHDL2008_Test_Plan_latest.html</td><td>pandoc + CDN mermaid</td><td>needs network</td></tr>'
-        + '<tr><td>reports/index.html</td><td>static portal page</td><td>entry point for all reports, generated last to guarantee links exist</td></tr></table>' },
-    { name: 'run_ghdl_suite.py', tag: 'verification', one: 'GHDL verifier (two-pass checks + header-driven classification + allowlist)',
-      detail: '<h5>Judgment logic</h5><ul>'
-        + '<li>two passes per file: <code>ghdl -s</code> syntax + <code>ghdl -a --std=08</code> analysis (failures auto-retried once for same-file package visibility)</li>'
-        + '<li>type comes from the header <code>-- Case Type:</code>, overriding the filename (Negative+SEM→SMN, Positive+SNN→SYN)</li>'
-        + '<li>SYN/SEM must pass; SNN/SMN rejected (incl. warning-only rejection) = PASS, silently accepted = FAIL</li>'
-        + '<li>allowlist rows → EXPECTED_FAIL, not counted as failures; --limit smoke runs do not overwrite the official report</li>'
-        + '</ul><h5>Output</h5><p style="font-size:.84em">ghdl_failures.csv (FAIL rows only, pure header required) + ghdl_test_results.md (matrix + Notes section + dynamic version) + ghdl_warn_reject.csv + ghdl_run_manifest.json (freshness chapter) + ghdl_allowlist.csv (gap catalog). Invoked via /ghdl-verify.</p>' },
-    { name: 'build_presentation.py', tag: 'reporting', one: 'work-report page generation: dynamic data injection + snapshot marker + drill-down diagram (auto-called by sync)',
-      detail: '<h5>Output</h5><p>presentation/index.html: fully self-contained (0 CDN) — 3 inline mmdc SVGs (mindmap/data flow/timeline) + layered drill-down architecture diagram + phase accordions + attachment copies in assets/.</p>'
-        + '<h5>Dynamic data</h5><p style="font-size:.84em">all dynamic numbers are injected at build time (file/folder/chapter counts, type distribution, SYN_S coverage, TF-still-Chinese, GHDL matrix/chapter table/Notes); the mindmap and data-flow SVGs are extracted live from architecture_mindmap.md; the historical narrative stays hand-maintained.</p>'
-        + '<h5>Snapshot gate</h5><p style="font-size:.84em">embeds the PRESENTATION_SNAPSHOT marker (files/folders/skills/agents/scripts/ghdl_files); verify_presentation() compares each item against disk and reports drift — architecture changes or test-set additions/deletions without a sync rerun are caught immediately.</p>' },
-    { name: 'serve_project.py', tag: 'LAN', one: 'LAN access entry: /presentation/ work-report page + /browse/ full file browse/download',
-      detail: '<h5>Routes</h5><ul>'
-        + '<li><code>/</code> → 302 to <code>/presentation/</code> (the work-report page as the front door)</li>'
-        + '<li><code>/browse/…</code> → directory browser (breadcrumbs, directories-first sorting, name/size/mtime; click to enter a directory, files download directly)</li>'
-        + '<li>other paths → static serving of any file in the project (.vhd/.md text preview, .html rendered, everything else downloads)</li>'
-        + '</ul><p><b>Usage</b>: run <code>python serve_project.py</code> (default port 8090), then access <code>http://&lt;host-IP&gt;:8090/</code> from the LAN. <b>Note</b>: visible to any host on the LAN — stop it when done; if the firewall blocks it, follow the netsh command shown in the startup message.</p>' }
-  ]},
-  { id: 'docs', name: 'Documents', color: '#8a7a4d', tag: 'output · 11 kinds', one: 'test plan / coverage / tracker / appendices / logs / rendered artifacts / verification reports', items: [
-    { name: 'Test Plan', one: 'includes the §8.5 debt chapter (deleted-when-done + migration log)',
-      detail: '<p>Main document: strategy / directory tree / coverage §6 / completion criteria §8 / <b>§8.5 debt ledger</b> / §9 per-production test points (fully generated) / Appendix A-E.</p>' },
-    { name: 'Coverage report + tracker + Appendix E', one: 'fully generated, verify-checked for consistency',
-      detail: '<p>coverage_summary.md is completely regenerated; PRODUCTION_TRACKER.md\'s Files column + Summary auto-update (the Notes column is hand-preserved); Appendix E is rebuilt by build_test_trace.py --full.</p>' },
-    { name: 'Architecture PDF / self-contained HTML / portal', one: 'auto-rendered on every sync',
-      detail: '<p>architecture_mindmap.pdf (print edition), architecture_mindmap.html (inline-SVG offline edition), reports/index.html (entry portal for all reports).</p>' },
-    { name: 'GHDL report', one: 'the gate\'s judgment basis',
-      detail: '<p>ghdl_test_results.md + ghdl_failures.csv + ghdl_allowlist.csv are generated by /ghdl-verify; the failure CSV is the judgment basis of the GHDL gate.</p>' }
-  ]}
+/* ================= layered drill-down architecture diagram =================
+ * Rendered generically from the architecture spec JSON — ARCH_SPEC is
+ * injected by build_presentation.py from project_facts.extract_arch_spec()
+ * (architecture_mindmap.md §2.2–§2.5 = the single source of truth; no
+ * hand-maintained data copy lives here). The DOM shape (classes, expand/
+ * collapse behavior) is unchanged from the hand-written version. */
+var ARCH_SPEC = /*ARCH_SPEC_BEGIN*/{{ARCH_SPEC}}/*ARCH_SPEC_END*/;
+
+var GROUP_META = [
+  { key: 'skills',  name: 'Skills',    color: '#2c6b9c', tagSuffix: 'total', one: 'four protocols: generate / sync / audit / external verification' },
+  { key: 'agents',  name: 'Agents',    color: '#3f9d5e', tagSuffix: 'total', one: 'sync / audit / project architecture / meta-architecture, each with its own role' },
+  { key: 'scripts', name: 'Scripts',   color: '#b5743a', tagSuffix: 'root scripts', one: 'sync engine / traceability matrix / report rendering / GHDL verification / facts authority' },
+  { key: 'docs',    name: 'Documents', color: '#8a7a4d', tagSuffix: 'kinds', one: 'test plan / coverage / tracker / appendices / logs / rendered artifacts / verification reports' }
 ];
+
+var GROUPS = GROUP_META.map(function (g) {
+  var members = ARCH_SPEC[g.key] || [];
+  g.items = members.map(function (m) {
+    var parts = (m.name || '').split(' — ');
+    return {
+      name: parts[0],
+      sub: parts.slice(1).join(' — '),
+      tag: m.model || '',
+      one: m.one || m.contents || '',
+      tables: m.tables || [],
+      fields: m
+    };
+  });
+  g.tag = members.length + ' ' + g.tagSuffix;
+  g.single = !g.items.length;
+  return g;
+});
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function detailHTML(item) {
+  var html = '';
+  var tables = item.tables || [];
+  for (var i = 0; i < tables.length; i++) {
+    var t = tables[i];
+    if (t.title) html += '<h5>' + esc(t.title) + '</h5>';
+    html += '<table><tr>';
+    for (var h = 0; h < t.header.length; h++) html += '<th>' + esc(t.header[h]) + '</th>';
+    html += '</tr>';
+    for (var r = 0; r < t.rows.length; r++) {
+      html += '<tr>';
+      for (var c = 0; c < t.rows[r].length; c++) {
+        html += '<td>' + esc(t.rows[r][c]).replace(/\n/g, '<br>') + '</td>';
+      }
+      html += '</tr>';
+    }
+    html += '</table>';
+  }
+  if (!html && item.fields && item.fields.path) {
+    html += '<h5>Document</h5><table>'
+      + '<tr><th>Path</th><td>' + esc(item.fields.path) + '</td></tr>'
+      + '<tr><th>Update Method</th><td>' + esc(item.fields.update) + '</td></tr>'
+      + '<tr><th>Contents</th><td>' + esc(item.fields.contents) + '</td></tr></table>';
+  }
+  if (!html) html = '<p>' + esc(item.one) + '</p>';
+  return html;
+}
 
 (function () {
   var l1 = document.getElementById('drill-l1');
   var l2 = document.getElementById('drill-l2');
   var detail = document.getElementById('drill-detail');
   var crumb = document.getElementById('drill-crumb');
-  var state = {};   // groupId -> open bool
+  var state = {};   // groupKey -> open bool
 
   function closeDetail() { detail.classList.remove('open'); detail.innerHTML = ''; }
 
   function openDetail(item, group) {
     crumb.textContent = group.name + ' / ' + item.name;
-    detail.innerHTML = '<div class="dhead"><b>' + item.name + '</b>'
-      + (item.tag ? '<span class="dt" style="background:' + group.color + '">' + item.tag + '</span>' : '')
+    detail.innerHTML = '<div class="dhead"><b>' + esc(item.name) + '</b>'
+      + (item.tag ? '<span class="dt" style="background:' + group.color + '">' + esc(item.tag) + '</span>' : '')
       + '<button class="dclose">Close</button></div>'
-      + item.detail;
+      + detailHTML(item);
     detail.classList.add('open');
     detail.querySelector('.dclose').addEventListener('click', closeDetail);
     detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1039,17 +1042,16 @@ var ARCH_GROUPS = [
     l2.innerHTML = '';
     if (!group.items || group.items.length === 0) {
       crumb.textContent = group.name;
-      openDetail(group, group);   // single node → show its own detail
       l2.classList.remove('open');
       return;
     }
     crumb.textContent = group.name + ' (' + group.items.length + ' members)';
-    l2.innerHTML = '<div class="l2title">' + group.name + ' members (click to see the full description)</div>'
+    l2.innerHTML = '<div class="l2title">' + esc(group.name) + ' members (click to see the full description)</div>'
       + '<div class="l2grid">' + group.items.map(function (it) {
-        return '<div class="l2node" data-name="' + it.name + '">'
-          + '<div><span class="dn">' + it.name + '</span>'
-          + (it.tag ? '<span class="dt" style="background:' + group.color + '">' + it.tag + '</span>' : '')
-          + '</div><div class="do">' + it.one + '</div></div>';
+        return '<div class="l2node" data-name="' + esc(it.name) + '">'
+          + '<div><span class="dn">' + esc(it.name) + '</span>'
+          + (it.tag ? '<span class="dt" style="background:' + group.color + '">' + esc(it.tag) + '</span>' : '')
+          + '</div><div class="do">' + esc(it.sub || it.one) + '</div></div>';
       }).join('') + '</div>';
     l2.querySelectorAll('.l2node').forEach(function (node) {
       node.addEventListener('click', function () {
@@ -1064,22 +1066,22 @@ var ARCH_GROUPS = [
   }
 
   function renderL1() {
-    l1.innerHTML = ARCH_GROUPS.map(function (g) {
+    l1.innerHTML = GROUPS.map(function (g) {
       var cnt = g.items ? g.items.length : 1;
-      return '<div class="dnode' + (g.single ? ' single' : '') + '" data-id="' + g.id + '">'
+      return '<div class="dnode' + (g.single ? ' single' : '') + '" data-id="' + g.key + '">'
         + '<div class="bar" style="background:' + g.color + '"></div>'
         + '<span class="cnt">' + cnt + '</span>'
-        + '<div><span class="dn">' + g.name + '</span>'
-        + '<span class="dt" style="background:' + g.color + '">' + g.tag + '</span></div>'
-        + '<div class="do">' + g.one + '</div>'
-        + '<div class="exp">' + (state[g.id] ? '▾ expanded — click to collapse' : '▸ click to expand') + '</div>'
+        + '<div><span class="dn">' + esc(g.name) + '</span>'
+        + '<span class="dt" style="background:' + g.color + '">' + esc(g.tag) + '</span></div>'
+        + '<div class="do">' + esc(g.one) + '</div>'
+        + '<div class="exp">' + (state[g.key] ? '▾ expanded — click to collapse' : '▸ click to expand') + '</div>'
         + '</div>';
     }).join('');
     l1.querySelectorAll('.dnode').forEach(function (node) {
       node.addEventListener('click', function () {
-        var g = ARCH_GROUPS.find(function (x) { return x.id === node.getAttribute('data-id'); });
-        state[g.id] = !state[g.id];
-        if (state[g.id]) {
+        var g = GROUPS.find(function (x) { return x.key === node.getAttribute('data-id'); });
+        state[g.key] = !state[g.key];
+        if (state[g.key]) {
           renderL1();
           renderL2(g);
         } else {
@@ -1094,13 +1096,13 @@ var ARCH_GROUPS = [
   }
 
   document.getElementById('drill-all').addEventListener('click', function () {
-    var first = ARCH_GROUPS[0];
-    ARCH_GROUPS.forEach(function (g) { state[g.id] = true; });
+    var first = GROUPS[0];
+    GROUPS.forEach(function (g) { state[g.key] = true; });
     renderL1();
     renderL2(first);
   });
   document.getElementById('drill-none').addEventListener('click', function () {
-    ARCH_GROUPS.forEach(function (g) { state[g.id] = false; });
+    GROUPS.forEach(function (g) { state[g.key] = false; });
     renderL1();
     l2.classList.remove('open');
     l2.innerHTML = '';
@@ -1187,13 +1189,15 @@ def main():
     def viewer(svg, cap):
         if not svg:
             return f'<p>({cap} SVG rendering failed — see assets/architecture_mindmap.pdf)</p>'
+        # INJ markers keep the injected diagram out of the style-fingerprint
+        # skeleton (diagram structure is data, not style)
         return f'''<div class="viewer">
   <div class="viewer-bar"><span class="cap">{cap}</span>
     <button data-act="in">Zoom in</button><button data-act="out">Zoom out</button>
     <button data-act="contain">Fit window</button><button data-act="width">Fit width</button>
     <button data-act="height">Fit height</button><button data-act="full">Fullscreen</button>
   </div>
-  <div class="viewer-stage">{svg}</div>
+  <div class="viewer-stage"><!--INJ:SVG-->{svg}<!--/INJ:SVG--></div>
   <div class="hint">Controls: hover over the diagram and wheel to zoom · hold and drag to pan · double-click to smart fit · fullscreen is a whiteboard document view (Esc to close)</div>
 </div>'''
 
@@ -1215,9 +1219,19 @@ def main():
     html = html.replace('{{TYPE_COUNTS}}',
                         f"SYN {tcounts.get('SYN', 0):,} / SNN {tcounts.get('SNN', 0):,} / "
                         f"SEM {tcounts.get('SEM', 0):,} / SMN {tcounts.get('SMN', 0):,}")
-    html = html.replace('{{MINDMAP}}', viewer(mindmap_svg, 'Full architecture mindmap — {{N_SKILLS}} skills / {{N_AGENTS}} agents / {{N_SCRIPTS}} root scripts / 12 document kinds (one-diagram mermaid overview)'))
+    html = html.replace('{{MINDMAP}}', viewer(mindmap_svg, 'Full architecture mindmap — {{N_SKILLS}} skills / {{N_AGENTS}} agents / {{N_SCRIPTS}} root scripts / {{DOC_KINDS}} document kinds (one-diagram mermaid overview)'))
     html = html.replace('{{FLOW}}', viewer(flow_svg, 'Data flow — generate → sync → verify → render'))
     html = html.replace('{{TIMELINE}}', viewer(timeline_svg, 'Iteration and evolution timeline — the five phases of 2026-07-23 ~ 08-20'))
+
+    # Architecture spec (single source: architecture_mindmap.md §2.2–§2.5) —
+    # the drill-down chart renders generically from this JSON; no hand-written
+    # data array lives in the template. Escaped for <script> embedding.
+    spec = project_facts.extract_arch_spec()
+    arch_spec_json = json.dumps(spec, ensure_ascii=False).replace('</', '<\\/')
+    html = html.replace('{{ARCH_SPEC}}', arch_spec_json)
+
+    # Debt table: live parse of the hand-maintained §8.5 Active Items
+    html = html.replace('{{DEBT_ROWS}}', debt_rows())
 
     # Facts Authority injection — resolved AFTER the viewer injections so any
     # placeholder tokens carried into the page by injected captions resolve too.
@@ -1227,6 +1241,28 @@ def main():
     html = html.replace('{{PROD_COUNT}}', str(facts['production_count']))
     html = html.replace('{{N_SKILLS}}', str(facts['skills']))
     html = html.replace('{{N_AGENTS}}', str(facts['agents']))
+    html = html.replace('{{IRON_RULES}}', str(facts['iron_rules']))
+    html = html.replace('{{SKILL_IRON_RULES}}', str(facts['skill_iron_rules']))
+    html = html.replace('{{DOC_KINDS}}', str(facts['doc_kinds']))
+    html = html.replace('{{BNF_NEW}}', str(facts['bnf_new_2008']))
+    html = html.replace('{{SEM_P0}}', str(facts['sem_p0']))
+    sem_cats = ' / '.join(f'{cat} {c["rules"]}'
+                          for cat, c in facts['sem_categories'][:5])
+    html = html.replace('{{SEM_CATEGORIES}}', sem_cats)
+    html = html.replace('{{ALLOWLIST_ROWS}}', str(allowlist_rows()))
+    # Layer-responsibility table: component names/models from the spec
+    def short(name):
+        return name.split(' — ')[0].strip()
+    html = html.replace('{{SKILL_NAMES}}',
+                        ' · '.join(f'{short(s["name"])} ({s["model"]})'
+                                   for s in spec['skills'] if s.get('model')))
+    html = html.replace('{{AGENT_NAMES}}',
+                        ' · '.join(f'{short(a["name"])} ({a["model"]})'
+                                   for a in spec['agents'] if a.get('model')))
+    html = html.replace('{{SCRIPT_NAMES}}',
+                        ' · '.join(short(x['name']) for x in spec['scripts']))
+    html = html.replace('{{DOC_NAMES}}',
+                        ' · '.join(d['name'] for d in spec['docs']))
     # N_SCRIPTS is also replaced earlier (before the viewer injections), but the
     # mindmap caption injected by {{MINDMAP}} carries its own copy — re-resolve
     # it here so no placeholder token survives the build.
