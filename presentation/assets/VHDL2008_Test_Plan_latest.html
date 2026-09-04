@@ -116,7 +116,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 </nav>
 <h1 id="vhdl-2008-grammar-and-static-semantic-test-plan">VHDL 2008 Grammar and Static Semantic Test Plan</h1>
-<p><strong>Document Version</strong>: V2.0 <strong>Date</strong>: 2026-08-28 <strong>Standard</strong>: IEEE Std 1076-2008 <strong>Compliance</strong>: IEEE 829 Test Plan</p>
+<p><strong>Document Version</strong>: V2.0 <strong>Date</strong>: 2026-09-04 <strong>Standard</strong>: IEEE Std 1076-2008 <strong>Compliance</strong>: IEEE 829 Test Plan</p>
 <hr />
 <h2 id="introduction">1. Introduction</h2>
 <h3 id="purpose">1.1 Purpose</h3>
@@ -794,6 +794,38 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <td>main agent</td>
 <td>Pending</td>
 <td>ch08_names/name/</td>
+</tr>
+<tr class="even">
+<td>Verification coverage</td>
+<td>GHDL-only verification: defects in GHDL itself can mask semantic errors; multi-tool verification (Vivado xsim / ModelSim / Quartus OEM / Conformal LEC) is not performed — no EDA tools are available on this machine</td>
+<td>5,185 files</td>
+<td>project-architect</td>
+<td>Pending</td>
+<td>run_multi_tool_suite.py + per-tool allowlists + verify gate</td>
+</tr>
+<tr class="odd">
+<td>Classification</td>
+<td>No synthesizable vs simulation-only classification; vendor-policy-dependent constructs are not identified (some syntax is not standard for simulation — each vendor has its own policy — such cases must not stay in the default suite)</td>
+<td>candidate productions: chapter 15 tool_directive, chapter 7 disconnection_specification, chapter 8 external names, chapter 5 physical types</td>
+<td>project-architect</td>
+<td>Pending</td>
+<td>per-production classification table + header field + exclusion policy (mark and exclude from tool runs, do not delete files)</td>
+</tr>
+<tr class="even">
+<td>Unverified inventory</td>
+<td>154 EXPECTED_FAIL (ghdl_allowlist.csv) and 43 WARN_REJECT (ghdl_warn_reject.csv) are counted as PASS but are not truly verified; the 2 REVIEW rows are tracked in the GHDL gap row above</td>
+<td>199 files</td>
+<td>/ghdl-verify</td>
+<td>Pending</td>
+<td>multi-tool verification (see the verification-coverage row above)</td>
+</tr>
+<tr class="odd">
+<td>Untested areas</td>
+<td>LRM ch01 and ch02 have no test chapters; a per-rule coverage audit of the 139 semantic rules is not done (uncovered_items.csv covers BNF-production level only — all 291 in-scope productions have files)</td>
+<td>139 rules</td>
+<td>main agent</td>
+<td>Pending</td>
+<td>Section 6 Coverage / uncovered_items.csv</td>
 </tr>
 </tbody>
 </table>
@@ -36613,7 +36645,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tr>
 <tr class="odd">
 <td>Auto-generated at</td>
-<td>2026-08-28 10:19</td>
+<td>2026-09-04 16:31</td>
 </tr>
 </tbody>
 </table>

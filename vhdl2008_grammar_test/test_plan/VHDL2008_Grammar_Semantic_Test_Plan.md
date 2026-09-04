@@ -1,7 +1,7 @@
 # VHDL 2008 Grammar and Static Semantic Test Plan
 
 **Document Version**: V2.0
-**Date**: 2026-08-28
+**Date**: 2026-09-04
 **Standard**: IEEE Std 1076-2008
 **Compliance**: IEEE 829 Test Plan
 
@@ -293,6 +293,10 @@ IEEE 829-compliant test plan covering scope, strategy, architecture, and traceab
 | Deliverable | Test plan HTML depends on CDN mermaid.js (cannot render offline); only the architecture HTML is self-contained | 1 file | project-architect | Pending | §4 / Deliverables |
 | Verification semantics | 43 WARN_REJECT negative cases (warning-only rejection) are listed (ghdl_warn_reject.csv) but counted as PASS; whether to tighten the semantics is open | 43 files | project-architect | Open | reports/ghdl_warn_reject.csv |
 | Content quality | ch08 name production: all 6 files at FIX level (architecture name bh, default port, 1 dead declaration, TC_NAME_SYN_S01 header-body contradiction + Test Focus restates the BNF + not registered in §9.178, sequence missing 001, SYN_002 merging 3 variants violates R8); see the quality-agent Phase 6 spot-check report | 6 files | main agent | Pending | ch08_names/name/ |
+| Verification coverage | GHDL-only verification: defects in GHDL itself can mask semantic errors; multi-tool verification (Vivado xsim / ModelSim / Quartus OEM / Conformal LEC) is not performed — no EDA tools are available on this machine | 5,185 files | project-architect | Pending | run_multi_tool_suite.py + per-tool allowlists + verify gate |
+| Classification | No synthesizable vs simulation-only classification; vendor-policy-dependent constructs are not identified (some syntax is not standard for simulation — each vendor has its own policy — such cases must not stay in the default suite) | candidate productions: chapter 15 tool_directive, chapter 7 disconnection_specification, chapter 8 external names, chapter 5 physical types | project-architect | Pending | per-production classification table + header field + exclusion policy (mark and exclude from tool runs, do not delete files) |
+| Unverified inventory | 154 EXPECTED_FAIL (ghdl_allowlist.csv) and 43 WARN_REJECT (ghdl_warn_reject.csv) are counted as PASS but are not truly verified; the 2 REVIEW rows are tracked in the GHDL gap row above | 199 files | /ghdl-verify | Pending | multi-tool verification (see the verification-coverage row above) |
+| Untested areas | LRM ch01 and ch02 have no test chapters; a per-rule coverage audit of the 139 semantic rules is not done (uncovered_items.csv covers BNF-production level only — all 291 in-scope productions have files) | 139 rules | main agent | Pending | Section 6 Coverage / uncovered_items.csv |
 
 ### Migration Log
 
@@ -11803,7 +11807,7 @@ IEEE 829-compliant test plan covering scope, strategy, architecture, and traceab
 | Chapter entries (including cross-chapter duplicates) | 328 |
 | Cross-chapter productions | 14 |
 | Covered files | 5185 |
-| Auto-generated at | 2026-08-28 10:19 |
+| Auto-generated at | 2026-09-04 16:31 |
 
 
 ## Appendix A: BNF Production Mapping Summary

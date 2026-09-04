@@ -96,6 +96,10 @@ The consistency gate cross-checks the test plan, coverage report, production
 tracker, Appendix E traceability matrix, architecture mindmap, and the
 presentation snapshot against the filesystem.
 
+Known limitations and unverified items (multi-tool verification, synthesis
+classification, allowlist inventory, untested areas) are tracked in §8.5 of
+the test plan (debt ledger).
+
 ## Claude Code Tooling
 
 The `.claude/` directory contains the agent, skill, and hook configuration

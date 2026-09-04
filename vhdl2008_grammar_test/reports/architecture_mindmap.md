@@ -1,6 +1,6 @@
 # VHDL 2008 Test Suite — Architecture Reference
 
-> Generated on 2026-08-28 · verified by `sync_all.py` when architecture files change
+> Generated on 2026-09-04 · verified by `sync_all.py` when architecture files change
 >
 > This document is the project's **single source of truth for architecture**. Any architecture change (adding/removing skills, agents, scripts, or document outputs) must update this file.
 > `sync_all.py --verify-only` enforces that this file matches the actual filesystem: 4 skills, 4 agents, 6 root scripts, and the key concept tokens (`ghdl` / `index.html` / `presentation`) must all be present. The harness layer (settings.json + 3 hooks + sync_pending.log) is documented in §2.1 and the mermaid Agents branch.
