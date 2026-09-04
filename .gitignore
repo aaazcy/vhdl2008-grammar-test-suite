@@ -22,3 +22,6 @@ tex2pdf.*/
 /vhdl2008_grammar_test/logs/
 /legacy_scripts/
 /1076-2008.pdf
+
+# Tool crash dumps
+*.stackdump
