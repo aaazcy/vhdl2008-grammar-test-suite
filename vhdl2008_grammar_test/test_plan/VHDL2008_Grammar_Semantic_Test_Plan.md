@@ -11807,7 +11807,7 @@ IEEE 829-compliant test plan covering scope, strategy, architecture, and traceab
 | Chapter entries (including cross-chapter duplicates) | 328 |
 | Cross-chapter productions | 14 |
 | Covered files | 5185 |
-| Auto-generated at | 2026-09-04 16:31 |
+| Auto-generated at | 2026-09-04 17:29 |
 
 
 ## Appendix A: BNF Production Mapping Summary

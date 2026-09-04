@@ -69,6 +69,7 @@ If verify reports issues, analyze and fix them immediately:
 | `Architecture diagram missing script/concept token` | Update `reports/architecture_mindmap.md` (mermaid Scripts branch + §2.4 + §4), then re-run sync |
 | `Debt chapter: heading missing / misplaced / malformed table / trap pattern` | Hand-edit §8.5 per its own rules (delete means done + migration log row), then re-run sync |
 | `Presentation snapshot mismatch / stale / missing component name` | Re-run --quick (presentation auto-rebuilds from live data); if a component name is missing from the page, update the drill-down ARCH_GROUPS data in build_presentation.py, then re-run |
+| `Fact claim stale` / `Hardcoded fact claim in source` | Every factual claim (numbers/paths/counts) must come from `project_facts.py` compute_facts() or a CLAIM_REGISTRY entry — fix the claim to the live fact; if a genuinely new claim type is needed, handoff-request a registry entry (project-architect domain), then re-run |
 
 Then re-run Step 1 and Step 2 until clean.
 

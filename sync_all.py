@@ -94,7 +94,7 @@ def load_reference_counts():
     """Derive BNF + semantic reference totals from the reference CSVs.
 
     bnf_reference.csv  -> bnf_total (all rows), bnf_excluded (cover_status !=
-                          'Covered' — the 4 PSL-integrated productions),
+                          'Covered' — the excluded rows),
                           bnf_in_scope, bnf_in_scope_names (bnf_id stems),
                           bnf_new_2008 (is_2008_new == 'Yes'),
                           bnf_p0 / bnf_p1 (default_priority)
@@ -1488,6 +1488,100 @@ def verify_debt_chapter(plan):
 
 
 # =============================================================================
+# 7k. Fact-Claim Gate (Facts Authority + Claim Registry)
+# =============================================================================
+
+try:
+    import project_facts
+except ImportError:  # belt-and-braces: sync_all.py always runs from the repo root
+    sys.path.insert(0, ROOT_DIR)
+    import project_facts
+
+# Output-side targets: rendered documents whose factual claims are verified
+# against project_facts.compute_facts() (exempt zones removed before scanning).
+FACT_DOC_TARGETS = (
+    ('presentation/index.html', os.path.join(ROOT_DIR, 'presentation', 'index.html'),
+     'presentation_html'),
+    ('architecture_mindmap.md', ARCH_DIAGRAM, 'markdown'),
+    ('README.md', os.path.join(ROOT_DIR, 'README.md'), 'markdown'),
+    ('coverage_summary.md', COVERAGE, 'markdown'),
+    ('PRODUCTION_TRACKER.md', TRACKER, 'markdown'),
+    ('test plan', TEST_PLAN, 'test_plan'),
+)
+
+# Source-side targets: generator sources must be literal-free — any registry
+# match in a generator source is a hardcoded fact (placeholders like
+# {{TOTAL_FILES}} contain no digits, so a match in source IS a literal).
+FACT_SOURCE_TARGETS = (
+    ('build_presentation.py', os.path.join(ROOT_DIR, 'build_presentation.py'),
+     'presentation_html'),
+    ('generate_arch_pdf.py', os.path.join(ROOT_DIR, 'generate_arch_pdf.py'),
+     'markdown'),
+    ('build_test_trace.py', os.path.join(ROOT_DIR, 'build_test_trace.py'),
+     'markdown'),
+)
+
+
+def _fmt_claim_values(values):
+    return '+'.join(str(v) for v in values)
+
+
+def verify_fact_claims():
+    """Claim gate: every factual claim must equal the live fact (single source
+    of truth: project_facts.compute_facts()).
+
+    Three sides:
+      1. Output side — CLAIM_REGISTRY patterns in the rendered documents
+         (exempt zones removed: the presentation evolution section + phase
+         accordions, the test plan Migration Log / changelog blocks); a value
+         that differs from the corresponding fact is a stale claim.
+      2. Source side — the same registry over the generator sources; a match
+         there is a hardcoded literal that must become a placeholder or a
+         computed value.
+      3. Filesystem side — backticked repo-relative path claims in README.md
+         and architecture_mindmap.md must exist on disk.
+    """
+    issues = []
+    facts = project_facts.compute_facts()
+
+    for label, path, kind in FACT_DOC_TARGETS:
+        if not os.path.exists(path):
+            continue  # existence itself is reported by the other verify steps
+        with open(path, 'r', encoding='utf-8', errors='replace') as f:
+            text = f.read()
+        masked = project_facts.exempt_zones(text, kind)
+        for m in project_facts.scan_claims(text, masked):
+            truth = tuple(facts[k] for k in m['keys'])
+            if m['values'] != truth:
+                issues.append(
+                    f'Fact claim stale: "{m["text"]}" claims {_fmt_claim_values(m["values"])} '
+                    f'but truth is {_fmt_claim_values(truth)} ({m["description"]}) '
+                    f'- {label}:{m["line"]}')
+
+    for label, path, kind in FACT_SOURCE_TARGETS:
+        if not os.path.exists(path):
+            continue
+        with open(path, 'r', encoding='utf-8', errors='replace') as f:
+            text = f.read()
+        masked = project_facts.exempt_zones(text, kind)
+        for m in project_facts.scan_claims(text, masked):
+            issues.append(
+                f'Hardcoded fact claim in source: "{m["text"]}" in {label}:{m["line"]} '
+                f'- generators must inject via placeholder or compute the value '
+                f'({m["description"]})')
+
+    for label, path in (('README.md', os.path.join(ROOT_DIR, 'README.md')),
+                        ('architecture_mindmap.md', ARCH_DIAGRAM)):
+        if not os.path.exists(path):
+            continue
+        with open(path, 'r', encoding='utf-8', errors='replace') as f:
+            text = f.read()
+        issues.extend(project_facts.filesystem_claims(text, label))
+
+    return issues
+
+
+# =============================================================================
 # 7. Cross-Validation
 # =============================================================================
 
@@ -1614,6 +1708,11 @@ def verify_all(per_production, totals, per_chapter):
 
     # 7j. Presentation snapshot freshness (index.html marker vs live disk)
     issues.extend(verify_presentation(totals))
+
+    # 7k. Fact-claim gate — Facts Authority + Claim Registry (project_facts.py):
+    # output claims must equal live facts, generator sources must be
+    # literal-free, filesystem claims must exist on disk
+    issues.extend(verify_fact_claims())
 
     return issues
 

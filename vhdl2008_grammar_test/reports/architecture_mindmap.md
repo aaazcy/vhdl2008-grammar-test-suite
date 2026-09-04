@@ -3,7 +3,7 @@
 > Generated on 2026-09-04 · verified by `sync_all.py` when architecture files change
 >
 > This document is the project's **single source of truth for architecture**. Any architecture change (adding/removing skills, agents, scripts, or document outputs) must update this file.
-> `sync_all.py --verify-only` enforces that this file matches the actual filesystem: 4 skills, 4 agents, 6 root scripts, and the key concept tokens (`ghdl` / `index.html` / `presentation`) must all be present. The harness layer (settings.json + 3 hooks + sync_pending.log) is documented in §2.1 and the mermaid Agents branch.
+> `sync_all.py --verify-only` enforces that this file matches the actual filesystem: 4 skills, 4 agents, 7 root scripts, and the key concept tokens (`ghdl` / `index.html` / `presentation`) must all be present. The harness layer (settings.json + 3 hooks + sync_pending.log) is documented in §2.1 and the mermaid Agents branch.
 
 ---
 
@@ -96,6 +96,9 @@ mindmap
         / work-report front + /browse/ full-file browsing
         LAN read-only access to any project file
         port 8090 manual start
+      project_facts.py
+        compute_facts single facts authority
+        CLAIM_REGISTRY two-sided claim gate
       legacy_scripts/
         38 one-off scripts + html_to_pdf.js archived
         legacy_data/test_cases_meta.csv
@@ -136,7 +139,7 @@ mindmap
 |---|---|
 | **Path** | `CLAUDE.md` |
 | **Role** | Top-level instruction file for the main agent |
-| **Contents** | Iron Rules (5 iron rules, each annotated with its enforcement mechanism), Harness Enforcement Layer (settings.json + 3 hooks + sync_pending.log), Memory Policy, Skill list (4), key-path quick reference, script quick reference |
+| **Contents** | Iron Rules (6 iron rules, each annotated with its enforcement mechanism — incl. Iron Rule 6: facts come from one source), Harness Enforcement Layer (settings.json + 3 hooks + sync_pending.log), Memory Policy, Skill list (4), key-path quick reference, script quick reference |
 | **Design principle** | Lean orchestration — tells the main agent only **when to invoke which skill**, never duplicates the methodology inside the skills |
 
 **Why it exists**: CLAUDE.md is the first file an AI agent reads when entering the project. It defines "who does what, when, and what counts as done". All detailed methodology lives in the skill files; CLAUDE.md only orchestrates.
@@ -144,10 +147,11 @@ mindmap
 **Relationships with other components**:
 - Points to → 4 Skills (`/vhdl-test-generator`, `/doc-sync`, `/quality-audit`, `/ghdl-verify`)
 - Points to → 4 Agents (`sync-agent`, `quality-agent`, `project-architect`, `meta-architect`)
-- Points to → 4 core scripts (`sync_all.py`, `build_test_trace.py`, `generate_arch_pdf.py`, `run_ghdl_suite.py`)
+- Points to → 7 root scripts (script quick-reference table — details in §2.4)
+- Points to → facts authority `project_facts.py` (Iron Rule 6: every factual claim derives from compute_facts()/CLAIM_REGISTRY; verified by `verify_fact_claims()` step 7k)
 - Does not contain → the full text of the 12 Iron Rules (they live in the `vhdl-test-generator` skill — the single definition site)
 
-**Harness Enforcement Layer**: `.claude/settings.json` + `.claude/hooks/` upgrades Iron Rules 1/5 from model discipline to machine records + machine reminders. The PostToolUse hook (log_case_edit.py) records every cases_src edit into `.claude/sync_pending.log`; the SessionStart hook (session_verify.py) runs `sync_all.py --verify-only` (exit code 1 = unfinished work, HARNESS GATE context injected; 0 issues = previous edits settled, log auto-cleared); the Stop hook (check_pending.py) reminds about unsettled records. permissions principle: allow contains only side-effect-free commands (write-class commands require confirmation = the gate ritual). The authoritative source for rendered artifacts (reports/architecture_mindmap.html, reports/index.html) is architecture_mindmap.md and the sync pipeline; they are regenerated only by `sync_all.py` / `generate_arch_pdf.py`, and agents never hand-edit them (guaranteed by convention + the verify gate; deny rules are no longer used — in practice deny also blocked the sync subprocess commands that write these paths).
+**Harness Enforcement Layer**: `.claude/settings.json` + `.claude/hooks/` upgrades Iron Rules 1/5 from model discipline to machine records + machine reminders (Iron Rule 6 is machine-enforced by `verify_fact_claims()`, step 7k — facts/claims gate). The PostToolUse hook (log_case_edit.py) records every cases_src edit into `.claude/sync_pending.log`; the SessionStart hook (session_verify.py) runs `sync_all.py --verify-only` (exit code 1 = unfinished work, HARNESS GATE context injected; 0 issues = previous edits settled, log auto-cleared); the Stop hook (check_pending.py) reminds about unsettled records. permissions principle: allow contains only side-effect-free commands (write-class commands require confirmation = the gate ritual). The authoritative source for rendered artifacts (reports/architecture_mindmap.html, reports/index.html) is architecture_mindmap.md and the sync pipeline; they are regenerated only by `sync_all.py` / `generate_arch_pdf.py`, and agents never hand-edit them (guaranteed by convention + the verify gate; deny rules are no longer used — in practice deny also blocked the sync subprocess commands that write these paths).
 
 **Memory Policy** (hard-coded in CLAUDE.md): memory stores only user preferences that cannot be derived from the repo; Iron Rules and architecture facts NEVER go into memory (putting them in memory degrades them into soft constraints).
 
@@ -292,7 +296,7 @@ Agents are **independently executed subprocesses** with a clear single responsib
 | **Tools** | `Bash`, `Read`, `Grep`, `Glob`, `Edit`, `Write` |
 | **Responsibility** | Owns the overall project architecture (everything except the agent/skill system) |
 
-**Workflow**: user reports a problem / proposes a new requirement → read the mindmap + CLAUDE.md + relevant scripts → gap analysis → minimal upgrade design (honoring the three principles: single source of truth / full regeneration over patching / verify gate) → implement root scripts/pipelines/docs → update the relevant mindmap sections + the §8.5 debt chapter (delete resolved items → migration log; add new debts) → `--quick` + `--verify-only` to 0 issues.
+**Workflow**: user reports a problem / proposes a new requirement → read the mindmap + CLAUDE.md + relevant scripts → gap analysis → minimal upgrade design (honoring the three principles: single source of truth — incl. facts via project_facts.py — / full regeneration over patching / verify gate) → implement root scripts/pipelines/docs (incl. the facts authority `project_facts.py` + CLAIM_REGISTRY + verify step 7k) → update the relevant mindmap sections + the §8.5 debt chapter (delete resolved items → migration log; add new debts) → `--quick` + `--verify-only` to 0 issues.
 
 **Boundaries**: never edits `.claude/` or `CLAUDE.md` (meta-architect territory); stops and hands off to the main agent when a new skill/agent is needed.
 
@@ -307,11 +311,11 @@ Agents are **independently executed subprocesses** with a clear single responsib
 | **Tools** | `Bash`, `Read`, `Grep`, `Glob`, `Edit`, `Write` |
 | **Responsibility** | Owns the meta layer (the agent/skill system itself) |
 
-**Workflow**: audit all of `.claude/` + CLAUDE.md + mindmap §2.1-2.3/§4 (responsibility overlap, model fit — haiku=mechanical/fable=reasoning, stale references, protocol quality, gate coverage) → optimize directly → update the mindmap + `verify_architecture_diagram()` expectations (the one narrow exception) → verify-only 0 issues.
+**Workflow**: audit all of `.claude/` + CLAUDE.md + mindmap §2.1-2.3/§4 (responsibility overlap, model fit — haiku=mechanical/fable=reasoning, stale references, protocol quality, gate coverage, claim hygiene — agent-system docs carry no unverified factual claims; the meta-domain mindmap sections are 7k scan targets) → optimize directly → update the mindmap + `verify_architecture_diagram()` expectations (the one narrow exception) → verify-only 0 issues.
 
-**Boundaries**: never touches root scripts (except the narrow exception), `cases_src/`, the test plan, the tracker, or reports; may add "Agent·Skill Architecture" category entries in §8.5; changes beyond the meta layer are handed off to the main agent (project-architect territory).
+**Boundaries**: never touches root scripts (except the narrow exception — `project_facts.py`/CLAIM_REGISTRY included; a claim-type extension for agent-system docs is a handoff request), `cases_src/`, the test plan, the tracker, or reports; may add "Agent·Skill Architecture" category entries in §8.5; changes beyond the meta layer are handed off to the main agent (project-architect territory).
 
-**Why it exists**: the agent/skill system is itself the "tool that builds the project" and needs continuous optimization (proven this session: blind-spot verification, responsibility drift, stale references keep recurring). Having the project architect audit itself would repeat the "generating agent self-audit is unreliable" mistake — an independent meta-architect watches over the builders.
+**Why it exists**: the agent/skill system is itself the "tool that builds the project" and needs continuous optimization (proven this session: blind-spot verification, responsibility drift, stale references keep recurring — the claim domain is now sealed by `verify_fact_claims()`, step 7k). Having the project architect audit itself would repeat the "generating agent self-audit is unreliable" mistake — an independent meta-architect watches over the builders.
 
 ---
 
@@ -337,6 +341,7 @@ Agents are **independently executed subprocesses** with a clear single responsib
 | `verify_ghdl_gate()` | GHDL gate: `ghdl_failures.csv` has data rows → reports `GHDL GATE:` issues; **freshness: `ghdl_run_manifest.json` `total_files_at_run` ≠ current file count → reports stale results (manifest written only by full runs, not partial runs; if missing, prompts to rerun `/ghdl-verify`)** | Read-only check |
 | `verify_debt_chapter()` | Validates the hand-maintained §8.5 debt chapter (heading present, §8-§9 safe zone, table rows/columns complete, no verify-trap text) | Read-only check |
 | `verify_all()` | Cross-verification: Section 9 ↔ filesystem ↔ Tracker ↔ Coverage Report ↔ Appendix E ↔ architecture mindmap ↔ GHDL gate | Read-only check |
+| `verify_fact_claims()` | Claim gate (7k): registry patterns in rendered docs must equal `project_facts.py` facts; generator sources must be literal-free; backticked path claims must exist on disk | Read-only check |
 | `check_header_quality()` | Scans all VHD headers for Test Focus quality (missing/too short/contains pipe characters/English-only) | Pre-generation check |
 | `validate_section9()` | Validates structural completeness of the generated §9 markdown (column alignment, no empty cells) | Pre-write validation |
 | `render_test_table()` | Unified markdown table renderer (built-in column-count validation and automatic pipe-character replacement) | DRY principle |
@@ -410,7 +415,7 @@ Agents are **independently executed subprocesses** with a clear single responsib
 
 **Snapshot gate**: at generation time a `PRESENTATION_SNAPSHOT` marker is embedded (files/folders/skills/agents/scripts/ghdl_files); `verify_presentation()` (verify 7j) compares each item against disk + every on-disk skill/agent name must appear in the page (prevents the drill-down chart narrative from falling behind) — an architecture change or test-suite addition/removal without a sync rerun is caught immediately.
 
-**Interactions**: layered drill-down architecture chart (click card to expand → click member for the detail panel), SVG viewer (smart fit/6 buttons/pan clamping/whiteboard fullscreen), phase accordion, file repository entry (points to `/browse/` dynamically in serve mode).
+**Interactions**: layered drill-down architecture chart (click card to expand → click member for the detail panel), SVG viewer (smart fit/6 buttons/pan clamping/whiteboard fullscreen), phase accordion.
 
 #### 2.4.6 serve_project.py — LAN Full-File Access
 
@@ -424,14 +429,23 @@ Agents are **independently executed subprocesses** with a clear single responsib
 
 **Security**: while running, any host on the LAN can read all project files (explicitly requested by the user) — stop it when done; at startup prints the machine's IPv4, access addresses, and the firewall netsh command.
 
-#### 2.4.7 legacy_scripts/ — One-Off Script Archive
+#### 2.4.7 project_facts.py — Facts Authority & Claim Registry
+
+| Property | Value |
+|---|---|
+| **Path** | `project_facts.py` |
+| **Purpose** | Single source of truth for every factual claim in prose/templates. `compute_facts()` derives all facts from live sources (cases_src filesystem scan, reference CSV totals, tracker title production count, live .claude/ skill/agent/hook counts, living root scripts) — memoized per process, no side effects on import. `CLAIM_REGISTRY` declares the factual-claim patterns (with exempt zones and a priority resolver: each claim is matched by exactly one rule). |
+| **Invocation** | Imported by `sync_all.py` (verify step 7k) and `build_presentation.py` (placeholder injection); never run standalone |
+| **Gate** | `verify_fact_claims()` (verify 7k) is two-sided: output claims must equal the facts (presentation / mindmap / README / coverage / tracker / test plan, exempt zones removed) and generator sources must be literal-free (any digit-bearing registry match in build_presentation.py / generate_arch_pdf.py / build_test_trace.py is a hardcoded fact — placeholders contain no digits, so a source match IS a literal); backticked repo-relative path claims in README + mindmap must exist on disk |
+
+#### 2.4.8 legacy_scripts/ — One-Off Script Archive
 
 | Property | Value |
 |---|---|
 | **Path** | `legacy_scripts/` |
 | **Contents** | 38 one-off generation/fix scripts (build_ch*.py, batch_ch*.py, enhance_*.py, fix_*.py, gen_*.py, refresh_docs.py, generate_section7.py, make_pdf*.py, update_*.py, etc.) + html_to_pdf.js + legacy_data/test_cases_meta.csv (doubled-path bug, no consumers, archived together) |
 | **Archived** | 2026-08-20 (P3 repository hygiene) |
-| **live-scan** | `sync_all.py`'s `live_root_scripts()` excludes by directory: root .py files − files inside legacy_scripts/ = 6 core scripts, all of which must appear in this mindmap. The directory is the single source of truth, replacing the old hard-coded list |
+| **live-scan** | `sync_all.py`'s `live_root_scripts()` excludes by directory: root .py files − files inside legacy_scripts/ = 7 core scripts, all of which must appear in this mindmap. The directory is the single source of truth, replacing the old hard-coded list |
 | **verify semantics** | `.py` names mentioned in backticks in the mindmap may live in the root directory, `.claude/` (hooks, M2), or `legacy_scripts/` (P3 extended existence check) |
 
 ---
@@ -512,8 +526,8 @@ flowchart LR
 | Skills | 4 | `vhdl-test-generator` (fable), `doc-sync` (haiku), `quality-audit` (haiku), `ghdl-verify` (fable) |
 | Agents | 4 | `sync-agent` (haiku), `quality-agent` (haiku), `project-architect` (fable), `meta-architect` (fable) |
 | Harness Hooks | 3 | session_verify (SessionStart), log_case_edit (PostToolUse), check_pending (Stop) — plus `.claude/sync_pending.log` machine record |
-| Iron Rules | 5 | Sync-Mandatory, Batch-Track, Quality-Verified, Method-In-Skills, External-Verification-Gate |
-| Scripts | 6 | `sync_all.py`, `build_test_trace.py`, `generate_arch_pdf.py`, `run_ghdl_suite.py`, `build_presentation.py`, `serve_project.py` |
+| Iron Rules | 6 | Sync-Mandatory, Batch-Track, Quality-Verified, Method-In-Skills, External-Verification-Gate, Facts-One-Source |
+| Scripts | 7 | `sync_all.py`, `build_test_trace.py`, `generate_arch_pdf.py`, `run_ghdl_suite.py`, `build_presentation.py`, `serve_project.py`, `project_facts.py` |
 | Auto-maintained Docs | 12 | Test Plan, Coverage Report, Tracker, Appendix E, Generation Log, Architecture Mindmap .md, Architecture PDF, Architecture self-contained HTML, Test Plan HTML, Reports Portal `index.html`, GHDL reports (results/failures/allowlist), Presentation (`presentation/index.html` + assets/) |
 
 ---

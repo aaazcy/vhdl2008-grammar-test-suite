@@ -36,6 +36,12 @@ AGENTS_DIR = os.path.join(ROOT, '.claude', 'agents')
 LEGACY_DIR = os.path.join(ROOT, 'legacy_scripts')
 ASSETS_DIR = os.path.join(PRES_DIR, 'assets')
 
+try:
+    import project_facts
+except ImportError:  # belt-and-braces: the script dir is always on sys.path when run directly
+    sys.path.insert(0, ROOT)
+    import project_facts
+
 NPM_BIN = os.path.expanduser(r'~\AppData\Roaming\npm')
 NODE_PATH_DIR = r'C:\Program Files\nodejs'
 
@@ -271,6 +277,7 @@ TEMPLATE = r'''<!DOCTYPE html>
   header.hero { background:linear-gradient(135deg,#16324f 0%,#1d4e7a 55%,#2c6b9c 100%); color:#fff; text-align:center; padding:clamp(40px,6vh,72px) 2vw clamp(36px,5vh,60px); }
   header.hero h1 { font-size:clamp(1.6rem, 3.2vw, 2.6rem); margin:0 0 10px; letter-spacing:1px; }
   header.hero .sub { color:#d5e4f2; max-width:min(920px,80vw); margin:8px auto 0; font-size:clamp(.92rem, 1.15vw, 1.08rem); }
+  header.hero .sub a { color:#ffd28a; text-decoration:underline; }
   header.hero .meta { color:#9fbdd8; font-size:.9em; margin-top:14px; }
   main { width:100%; max-width:none; padding:0 clamp(12px, 2.5vw, 44px) 90px; }
   section { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:clamp(20px, 2.2vw, 36px) clamp(18px, 2.2vw, 40px); margin-top:clamp(18px, 2.4vw, 32px); box-shadow:0 2px 8px rgba(22,50,79,.06); }
@@ -400,7 +407,8 @@ TEMPLATE = r'''<!DOCTYPE html>
 
 <header class="hero" id="overview">
   <h1>IEEE 1076-2008 Syntax &amp; Semantic Test Suite</h1>
-  <p class="sub">Covers all 306 in-scope Annex C BNF productions + 139 core semantic rules, totaling <b>{{TOTAL_FILES}} test files</b>;
+  <p class="sub">GitHub: <a href="https://github.com/aaazcy/vhdl2008-grammar-test-suite">github.com/aaazcy/vhdl2008-grammar-test-suite</a> · this page is the work-report presentation for this project</p>
+  <p class="sub">Covers all {{IN_SCOPE_BNF}} in-scope Annex C BNF productions + {{SEM_TOTAL}} core semantic rules, totaling <b>{{TOTAL_FILES}} test files</b>;
   fully verified by the public analyzer GHDL 6.0 with <b>0 failures</b>; an engineered system driven by an AI agent team, script-verified, and deliverable as an on-premises test system.</p>
   <p class="meta">Development period 2026-07-23 ~ 2026-08-20 (4 weeks) · AI agents lead, human review assists · this page is fully offline and self-contained</p>
 </header>
@@ -411,10 +419,10 @@ TEMPLATE = r'''<!DOCTYPE html>
   <h2><span class="no">01</span>Key Result Numbers</h2>
   <div class="cards">
     <div class="card"><div class="num">{{TOTAL_FILES}}</div><div class="lbl">test files ({{N_CHAPTERS}} chapters / {{TOTAL_FOLDERS}} folders)</div></div>
-    <div class="card"><div class="num">306+139</div><div class="lbl">BNF productions + semantic rules = 445 items, 100% coverage</div></div>
+    <div class="card"><div class="num">{{IN_SCOPE_BNF}}+139</div><div class="lbl">BNF productions + semantic rules, 100% coverage</div></div>
     <div class="card"><div class="num">0</div><div class="lbl">GHDL full-run failures ({{GHDL_FILES}} testable files)</div></div>
     <div class="card"><div class="num">{{SPEC_PCT}}%</div><div class="lbl">production-specific test coverage ({{SPEC_FOLDERS}}/{{TOTAL_FOLDERS}} folders, {{SPEC_FILES}} SYN_S)</div></div>
-    <div class="card"><div class="num">4+4+{{N_SCRIPTS}}</div><div class="lbl">Skills + Agents + root scripts</div></div>
+    <div class="card"><div class="num">{{N_SKILLS}}+{{N_AGENTS}}+{{N_SCRIPTS}}</div><div class="lbl">Skills + Agents + root scripts</div></div>
   </div>
   <div class="grid2">
     <div>
@@ -451,7 +459,7 @@ TEMPLATE = r'''<!DOCTYPE html>
 
 <section id="arch">
   <h2><span class="no">02</span>Current Architecture</h2>
-  <p>The architecture is kept consistent with the filesystem by <code>sync_all.py --verify-only</code> (4 skills, 4 agents, 5 root scripts, key-concept tokens — missing one errors out). The <b>layered drill-down diagram</b> below shows it: click a first-level card to expand that layer's members, click a member to see its full responsibility description.</p>
+  <p>The architecture is kept consistent with the filesystem by <code>sync_all.py --verify-only</code> ({{N_SKILLS}} skills, {{N_AGENTS}} agents, {{N_SCRIPTS}} root scripts, key-concept tokens — missing one errors out). The <b>layered drill-down diagram</b> below shows it: click a first-level card to expand that layer's members, click a member to see its full responsibility description.</p>
 
   <div class="drill-bar">
     <span class="crumb">Architecture / <b id="drill-crumb">Click the cards below to expand layer by layer</b></span>
@@ -491,7 +499,7 @@ TEMPLATE = r'''<!DOCTYPE html>
   <details class="phase"><summary><span class="pno">Step 2</span><span class="ptitle">Mandatory sync</span><span class="pwhen">/doc-sync (haiku) · Iron Rule #1</span><span class="pstat">must trigger after every file change</span><i class="arrow">▶</i></summary>
     <div class="pbody"><code>sync_all.py --quick</code> does it in one pass: Test Plan §3.1/§5.3/§6/§9, coverage report, tracker, generation log, architecture PDF/self-contained HTML/portal rendering.</div></details>
   <details class="phase"><summary><span class="pno">Step 3</span><span class="ptitle">Verify gate</span><span class="pwhen">sync_all.py --verify-only</span><span class="pstat">0 issues = the only definition of done</span><i class="arrow">▶</i></summary>
-    <div class="pbody">Cross-checks 10 consistency groups (§9 counts / coverage totals / Tracker / Test Plan totals / Appendix E / mindmap skills-agents-scripts-tokens / <b>GHDL gate</b> / <b>§8.5 debt chapter</b> / header-quality precheck); any inconsistency errors out immediately.</div></details>
+    <div class="pbody">Cross-checks the consistency groups (§9 counts / coverage totals / Tracker / Test Plan totals / Appendix E / mindmap skills-agents-scripts-tokens / <b>GHDL gate</b> / <b>§8.5 debt chapter</b> / <b>fact claims</b> / header-quality precheck); any inconsistency errors out immediately.</div></details>
   <details class="phase"><summary><span class="pno">Step 4</span><span class="ptitle">Independent content audit</span><span class="pwhen">/quality-audit (haiku)</span><span class="pstat">a parallel line to sync</span><i class="arrow">▶</i></summary>
     <div class="pbody">Runs the five-dimension 12-Iron-Rule check on generated files and reports the violation list to the main agent — the generator does not self-audit, the auditor does not modify.</div></details>
   <details class="phase"><summary><span class="pno">Step 5</span><span class="ptitle">GHDL fix loop</span><span class="pwhen">/ghdl-verify (fable) · Iron Rule #5</span><span class="pstat">four-way classification → fix → rerun to 0</span><i class="arrow">▶</i></summary>
@@ -600,8 +608,24 @@ TEMPLATE = r'''<!DOCTYPE html>
     </div>
   </details>
 
+  <details class="phase" id="phase6">
+    <summary><span class="pno">Phase 6</span><span class="ptitle">Claim Sealing: Facts Authority &amp; Claim Registry</span><span class="pwhen">09-04</span><span class="pstat">hardcoded drift extinct · touchstone-proven gate</span><i class="arrow">▶</i></summary>
+    <div class="pbody">
+      <ul class="substeps">
+        <li><b>Problem</b>: factual claims in prose and templates were hardcoded and drifted silently — the tracker card claimed <b>319 BNF productions</b> while the tracker title and the disk say <b>314</b>, and the architecture section claimed <b>5 root scripts</b> while the root actually holds 7; no gate checked any of it.</li>
+        <li><b>Method</b> (the user's idea): do not fix the symptom first — build the detector, leave the real bugs in place as a touchstone, let the gate's first run catch them, then fix through the mechanism.</li>
+        <li><b>Mechanism</b>: <code>project_facts.py</code> single facts authority (live scans: cases_src walk, reference CSVs, tracker title, .claude/ skill/agent/hook counts); <code>CLAIM_REGISTRY</code> + two-sided gate — output claims must equal the facts, generator sources must be literal-free, filesystem claims must exist on disk; blind-spot sealing extended to the claim domain.</li>
+        <li><b>Result</b>: the first run failed on the stale claims with <b>zero false positives</b> (the hardcoded 306-in-scope hero number happened to equal the live CSV truth in this export — the gate verified it instead of flagging it, and the source-side lint still expelled the literal); placeholders replaced every hardcoded current-state number; 0 issues since.</li>
+      </ul>
+      <div class="pain"><b>Problems encountered:</b> hardcoded numbers in prose age silently — sync only checked the generated docs, so "319 productions" or "5 root scripts" could stay wrong forever without any gate noticing.</div>
+      <div class="gain"><b>Mechanisms introduced:</b> project_facts.py (single facts authority) + CLAIM_REGISTRY (claim patterns + exempt zones + priority resolver) + verify 7k (output side / source side / filesystem side); touchstone-first workflow — prove the detector on real bugs before fixing them.</div>
+      <div class="scripts"><span>project_facts.py</span><span>sync_all.py (+verify 7k)</span><span>build_presentation.py (+placeholders)</span></div>
+      <p>Output: the claim gate joins every verify run — 0 issues, 0 stale claims · <a class="xlink" href="#method">see the blind-spot sealing entry ↗</a></p>
+    </div>
+  </details>
+
   <details class="phase" style="margin-top:20px">
-    <summary><span class="pno">Appendix</span><span class="ptitle">Complete event log (all batches P1-P22 + key milestones)</span><span class="pstat">22-row timeline detail</span><i class="arrow">▶</i></summary>
+    <summary><span class="pno">Appendix</span><span class="ptitle">Complete event log (all batches P1-P22 + key milestones)</span><span class="pstat">23-row timeline detail</span><i class="arrow">▶</i></summary>
     <div class="pbody">
       <table>
         <tr><th>Date</th><th>Batch</th><th>Event</th><th>Numbers</th></tr>
@@ -624,6 +648,7 @@ TEMPLATE = r'''<!DOCTYPE html>
         <tr><td>08-19</td><td>—</td><td>GHDL 6.0 first full verification run</td><td><b>1,251 failures</b></td></tr>
         <tr><td>08-19</td><td>—</td><td>Four-way-classification fix campaign (batch + 8 agents in parallel)</td><td>→ <b>0 failures</b></td></tr>
         <tr><td>08-20</td><td>—</td><td>§8.5 debt chapter + architect agent team</td><td>verify 7i / +2 agents</td></tr>
+        <tr><td>09-04</td><td>—</td><td>Claim Sealing: Facts Authority + Claim Registry (touchstone-proven)</td><td>verify 7k / 0 stale claims</td></tr>
         <tr><td>08-20</td><td>—</td><td>203 Test Focus header repositionings (regression caught by the GHDL gate)</td><td>203 files</td></tr>
         <tr><td>08-20</td><td>—</td><td>End state: full verify 0 issues + GHDL 0 failures</td><td>5,185 files</td></tr>
       </table>
@@ -666,7 +691,7 @@ TEMPLATE = r'''<!DOCTYPE html>
       <ul style="margin:4px 0;padding-left:18px;font-size:.87em">
         <li><b>Single source of truth</b>: the filesystem is the only truth, docs are fully generated — real case: after the three-way stat contradiction, no more patching</li>
         <li><b>Full regeneration beats patching</b>: patch-style updates fix one place and miss two — the root cause of silent staleness</li>
-        <li><b>Blind-spot sealing</b>: every "unchecked thing" discovered gets added to verify — already sealed: the script set (GHDL drift), the debt-chapter structure</li>
+        <li><b>Blind-spot sealing</b>: every "unchecked thing" discovered gets added to verify — blind-spot sealing now also covers factual claims (numbers/paths/architecture counts), not just missing checks — already sealed: the script set (GHDL drift), the debt-chapter structure, the claim domain (Facts Authority + Claim Registry, verify 7k)</li>
         <li><b>Done = verify 0 issues</b>: not by memory, enforced by script; reverse tests proved the gate really blocks (a fake failure row → GHDL GATE alarm)</li>
       </ul>
     </div>
@@ -711,8 +736,7 @@ TEMPLATE = r'''<!DOCTYPE html>
     <a href="assets/VHDL2008_Test_Plan_latest.html">Test Plan HTML<span>Full test plan (strategy / coverage / §9 per-production test points / appendices); mermaid diagrams need network</span></a>
     <a href="assets/coverage_summary.md">Coverage report<span>Complete stats by chapter/type/semantic rule/quality metric</span></a>
     <a href="assets/ghdl_test_results.md">GHDL test results<span>By-type/by-chapter matrix + WARN_REJECT / EXPECTED_FAIL notes</span></a>
-    <a href="assets/PRODUCTION_TRACKER.md">Production tracker<span>Status and file counts of the 319 BNF productions</span></a>
-    <a id="repo-link" href="#">Project file repository (online)<span id="repo-desc">Browse / download any file in the project (VHD sources, reports, scripts) — requires accessing this page via the server</span></a>
+    <a href="assets/PRODUCTION_TRACKER.md">Production tracker<span>Status and file counts of the {{PROD_COUNT}} BNF productions</span></a>
   </div>
 </section>
 
@@ -886,7 +910,7 @@ var ARCH_GROUPS = [
       + '<li><b>Methodology lives in skills</b>: the 12 Iron Rules / 5-layer thinking / 6-step loop / error patterns / category tables are defined once in /vhdl-test-generator; CLAUDE.md does not repeat them</li>'
       + '<li><b>External verification is the quality gate</b>: after any .vhd change /ghdl-verify (full or --chapter) to 0 non-allowlist failures; GHDL limitations must be explicitly allowlisted with a reason — never silently accepted</li>'
       + '</ol><p><b>Design principle</b>: CLAUDE.md only orchestrates — telling the main agent when to call which skill and dispatch which agent; all detailed methodology is pushed down into skill files to avoid dual-source drift.</p>' },
-  { id: 'skills', name: 'Skills', color: '#2c6b9c', tag: 'methodology · 4 total', one: 'four protocols: generate / sync / audit / external verification', items: [
+  { id: 'skills', name: 'Skills', color: '#2c6b9c', tag: 'methodology · {{N_SKILLS}} total', one: 'four protocols: generate / sync / audit / external verification', items: [
     { name: 'vhdl-test-generator', tag: 'fable', one: 'generation protocol: 12 Iron Rules / 5-layer deep thinking / 6-step work loop',
       detail: '<h5>5-layer deep thinking (pre-generation cognitive framework)</h5><ol>'
         + '<li><b>Essence</b>: the role of this BNF production in VHDL, its minimal compilable form</li>'
@@ -925,7 +949,7 @@ var ARCH_GROUPS = [
         + '<p style="font-size:.84em">vunit support missing 48 · force/release assignment 54 · record constraints and resolution 27 · matching operators ?= ?/= ?? 4 · generic subprogram instantiation 4 · pipe-separated selection 2 · scalar \'range 1, etc.</p>'
         + '<p><b>Why fable</b>: telling "file bug" apart from "tool gap" requires judging the boundary between VHDL semantics and GHDL defects; haiku has repeatedly misjudged this.</p>' }
   ]},
-  { id: 'agents', name: 'Agents', color: '#3f9d5e', tag: 'executors · 4 total', one: 'sync / audit / project architecture / meta-architecture, each with its own role', items: [
+  { id: 'agents', name: 'Agents', color: '#3f9d5e', tag: 'executors · {{N_AGENTS}} total', one: 'sync / audit / project architecture / meta-architecture, each with its own role', items: [
     { name: 'sync-agent', tag: 'haiku', one: 'doc sync only; no VHD, no root scripts',
       detail: '<p><b>Duties</b>: run --quick + --verify-only and report the results (incl. GHDL gate status, HTML/portal outputs).</p>'
         + '<p><b>Constraints</b>: no .vhd edits (except fixing Test Focus headers); no edits to any root script or architect agent file; GHDL GATE issues are not self-fixed, instead reports "invoke /ghdl-verify".</p>'
@@ -946,13 +970,13 @@ var ARCH_GROUPS = [
         + '<li>optimize directly</li><li>update the mindmap + verify expectations</li><li>verify-only 0 issues</li></ol>'
         + '<p><b>Boundaries</b>: never touches root scripts (except the narrow exception), cases_src, or the Test Plan. May add an "Agent·Skill Architecture" category entry in §8.5.</p>' }
   ]},
-  { id: 'scripts', name: 'Scripts', color: '#b5743a', tag: 'engine · 5 root scripts', one: 'sync engine / traceability matrix / report rendering / GHDL verification', items: [
-    { name: 'sync_all.py', tag: 'core', one: 'unified sync + verify gate (10 consistency checks)',
+  { id: 'scripts', name: 'Scripts', color: '#b5743a', tag: 'engine · {{N_SCRIPTS}} root scripts', one: 'sync engine / traceability matrix / report rendering / GHDL verification', items: [
+    { name: 'sync_all.py', tag: 'core', one: 'unified sync + verify gate (the consistency checks)',
       detail: '<h5>Three modes</h5><table><tr><th>Mode</th><th>Refresh scope</th><th>When</th></tr>'
         + '<tr><td>--quick</td><td>Test Plan §3.1/5.3/6/9 + coverage + Tracker + log + architecture PDF/HTML/portal</td><td>after every file change</td></tr>'
         + '<tr><td>--full</td><td>quick + Appendix E + DOCX</td><td>phase end / version release</td></tr>'
         + '<tr><td>--verify-only</td><td>read-only check of 10 consistency groups</td><td>the criterion for "done"</td></tr></table>'
-        + '<h5>Key verification functions</h5><p style="font-size:.84em">verify_all (§9/coverage/Tracker/totals/appendix/mindmap) · verify_ghdl_gate (failure CSV must have 0 rows) · verify_debt_chapter (§8.5 heading/safe-zone/table structure) · verify_architecture_diagram (live scan of 4 skills/4 agents/5 scripts/3 tokens)</p>' },
+        + '<h5>Key verification functions</h5><p style="font-size:.84em">verify_all (§9/coverage/Tracker/totals/appendix/mindmap) · verify_fact_claims (Facts Authority claim gate) · verify_ghdl_gate (failure CSV must have 0 rows) · verify_debt_chapter (§8.5 heading/safe-zone/table structure) · verify_architecture_diagram (live scan of {{N_SKILLS}} skills/{{N_AGENTS}} agents/{{N_SCRIPTS}} scripts/3 tokens)</p>' },
     { name: 'build_test_trace.py', tag: 'auxiliary', one: 'Appendix E traceability matrix (~12,000 lines / 328 chapter entries)',
       detail: '<p>Auto-called by <code>sync_all.py --full</code>: a per-production test point → file mapping traceability matrix, extracted from the file headers\' Test Focus.</p>' },
     { name: 'generate_arch_pdf.py', tag: 'rendering', one: 'report rendering: mindmap PDF / self-contained HTML / Test Plan HTML / portal',
@@ -1087,23 +1111,6 @@ var ARCH_GROUPS = [
   renderL1();
 })();
 
-/* ============ file-repo link (server-aware) ============ */
-(function () {
-  var a = document.getElementById('repo-link');
-  var d = document.getElementById('repo-desc');
-  if (!a) return;
-  if (location.hostname.endsWith('.github.io')) {
-    a.href = 'https://github.com/aaazcy/vhdl2008-grammar-test-suite';
-    d.textContent = 'Browse the full project source on GitHub';
-  } else if (location.protocol === 'http:' || location.protocol === 'https:') {
-    a.href = location.origin + '/browse/';
-    d.textContent = 'Browse / preview any project file online (VHD sources, reports, scripts)';
-  } else {
-    a.href = 'http://127.0.0.1:8090/browse/';
-    d.textContent = 'Local preview requires serve_project.py running (if it won\'t open, run: python serve_project.py); LAN colleagues visit http://<host-IP>:8090/';
-  }
-})();
-
 /* ============ scrollspy + smooth anchors + back-to-top ============ */
 (function () {
   var links = document.querySelectorAll('nav a');
@@ -1208,9 +1215,22 @@ def main():
     html = html.replace('{{TYPE_COUNTS}}',
                         f"SYN {tcounts.get('SYN', 0):,} / SNN {tcounts.get('SNN', 0):,} / "
                         f"SEM {tcounts.get('SEM', 0):,} / SMN {tcounts.get('SMN', 0):,}")
-    html = html.replace('{{MINDMAP}}', viewer(mindmap_svg, 'Full architecture mindmap — 4 skills / 4 agents / 6 root scripts / 12 document kinds (one-diagram mermaid overview)'))
+    html = html.replace('{{MINDMAP}}', viewer(mindmap_svg, 'Full architecture mindmap — {{N_SKILLS}} skills / {{N_AGENTS}} agents / {{N_SCRIPTS}} root scripts / 12 document kinds (one-diagram mermaid overview)'))
     html = html.replace('{{FLOW}}', viewer(flow_svg, 'Data flow — generate → sync → verify → render'))
     html = html.replace('{{TIMELINE}}', viewer(timeline_svg, 'Iteration and evolution timeline — the five phases of 2026-07-23 ~ 08-20'))
+
+    # Facts Authority injection — resolved AFTER the viewer injections so any
+    # placeholder tokens carried into the page by injected captions resolve too.
+    facts = project_facts.compute_facts()
+    html = html.replace('{{IN_SCOPE_BNF}}', str(facts['bnf_in_scope']))
+    html = html.replace('{{SEM_TOTAL}}', str(facts['sem_total']))
+    html = html.replace('{{PROD_COUNT}}', str(facts['production_count']))
+    html = html.replace('{{N_SKILLS}}', str(facts['skills']))
+    html = html.replace('{{N_AGENTS}}', str(facts['agents']))
+    # N_SCRIPTS is also replaced earlier (before the viewer injections), but the
+    # mindmap caption injected by {{MINDMAP}} carries its own copy — re-resolve
+    # it here so no placeholder token survives the build.
+    html = html.replace('{{N_SCRIPTS}}', str(facts['root_scripts']))
 
     # 4. Freshness snapshot marker (verify_presentation reads it back)
     snapshot = ('<!-- PRESENTATION_SNAPSHOT: files={} folders={} skills={} agents={} scripts={} ghdl_files={} -->'

@@ -29,9 +29,11 @@ Mechanism per rule: **machine-enforced** = enforced by harness exit codes / hook
 
 5. **External verification is part of the quality gate** — machine-enforced. After any .vhd change, invoke `/ghdl-verify` (full or scoped `--chapter`) and reach 0 non-allowlist FAILs. GHDL limitations must be explicitly allowlisted in `reports/ghdl_allowlist.csv` with a reason — never silently accepted. Then invoke `/doc-sync`. Machine layer: `verify_ghdl_gate()` runs in every `--verify-only` — any FAIL row fails the gate, and freshness is enforced (`ghdl_run_manifest.json` total vs current file count), so a stale run cannot masquerade as clean.
 
+6. **Facts come from one source** — machine-enforced. Any factual claim (numbers, paths, architecture counts) written into any doc or template must come from `project_facts.py` compute_facts() or be added to CLAIM_REGISTRY; hardcoded fact literals in generator sources are verify failures (verify_fact_claims, step 7k); when a new claim type appears, add a registry entry (blind-spot sealing, claim domain). Machine layer: `verify_fact_claims()` runs in every `--verify-only` — output-side claims must equal the live facts, generator sources must be literal-free, and backticked filesystem claims (README.md, architecture_mindmap.md) must exist on disk.
+
 ## Harness Enforcement Layer
 
-`.claude/settings.json` + `.claude/hooks/*.py` turn Iron Rules 1/5 from model discipline into machine records and machine reminders:
+`.claude/settings.json` + `.claude/hooks/*.py` turn Iron Rules 1/5 from model discipline into machine records and machine reminders (Iron Rule 6 is machine-enforced by `verify_fact_claims()`, step 7k, inside every `--verify-only`):
 
 | Hook | Event | Job |
 |---|---|---|
@@ -64,6 +66,7 @@ Boundaries: project-architect never edits `.claude/` or CLAUDE.md; meta-architec
 |---|---|
 | `vhdl2008_grammar_test/test_case_db/cases_src/ch{NN}_*/` | Test files by chapter |
 | `sync_all.py` | Unified sync script (the only entry point); `--verify-only` exit code is the machine gate: 0 = consistent, 1 = issues |
+| `project_facts.py` | Single facts authority + CLAIM_REGISTRY — every factual claim (numbers/paths/architecture counts) in docs and templates derives from it |
 | `PRODUCTION_TRACKER.md` | All 314 unique productions with status & file counts |
 | `vhdl2008_grammar_test/test_plan/VHDL2008_Grammar_Semantic_Test_Plan.md` | Master test plan |
 | `vhdl2008_grammar_test/reports/coverage_summary.md` | Coverage report (auto-generated) |
@@ -83,6 +86,7 @@ Boundaries: project-architect never edits `.claude/` or CLAUDE.md; meta-architec
 | `generate_arch_pdf.py` | Report renderer — mindmap PDF + self-contained architecture HTML + `reports/index.html` portal (auto-called by sync) |
 | `build_presentation.py` | Work-report presentation builder — dynamic data injection + PRESENTATION_SNAPSHOT marker (auto-called by sync; verified by `verify_presentation()`) |
 | `serve_project.py` | LAN web access (manual start, port 8090) — `/` fronts the presentation, `/browse/` browses/downloads any project file |
+| `project_facts.py` | Single facts authority — compute_facts() + CLAIM_REGISTRY feed every factual claim in docs/templates; verified by verify_fact_claims() (step 7k) |
 
 ## Git
 
